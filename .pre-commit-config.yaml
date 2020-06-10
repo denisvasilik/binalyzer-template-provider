@@ -25,6 +25,6 @@ repos:
       name: Unit Tests
       stages: [push]
       language: system
-      entry: python3 -m pytest tests --cov=binalyzer_template_provider --cov-fail-under=20
+      entry: python3 -m pytest tests --cov=binalyzer_template_provider --cov-fail-under=0
       types: [python]
       pass_filenames: false
