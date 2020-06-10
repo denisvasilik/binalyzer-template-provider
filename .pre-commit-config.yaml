@@ -11,12 +11,3 @@ repos:
     rev: 19.3b0
     hooks:
     -   id: black
--   repo: local
-    hooks:
-    - id: pytest-cov
-      name: Unit Tests
-      stages: [push]
-      language: system
-      entry: python3 -m pytest tests --cov=binalyzer_template_provider --cov-fail-under=0
-      types: [python]
-      pass_filenames: false
