@@ -1,5 +1,6 @@
 resources/*.interp
 resources/*.tokens
+**/generated/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
