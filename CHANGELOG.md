@@ -9,4 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added support for XML
 
-[Unreleased]: https://github.com/denisvasilik/binalyzer_template_provider
+[Unreleased]: https://github.com/denisvasilik/binalyzer-template-provider
