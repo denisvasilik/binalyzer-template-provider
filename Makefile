@@ -41,11 +41,12 @@ clone:
 package: generate-xml-parser
 	python3 setup.py sdist bdist_wheel
 
-install-from-test-pypi:
-	pip3 install --upgrade -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple binalyzer
 
 upload-to-test-pypi: package
-	python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	python3 -m twine upload --repository testpypi dist/*
+
+upload-to-pypi: package
+	python3 -m twine upload --repository pypi dist/*
 
 clean:
 	(cd $(SRC_DIR)/generated && rm -f XMLLexer.py \
@@ -67,4 +68,4 @@ clean:
 	 	dist \
 		cov_html)
 
-.PHONY: all install-antlr4 generate-xml-parser clean sloc test flakes lint clone package install-from-test-pypi upload-to-test-pypi
+.PHONY: all install-antlr4 generate-xml-parser clean sloc test flakes lint clone package install-from-test-pypi upload-to-test-pypi upload-to-pypi
