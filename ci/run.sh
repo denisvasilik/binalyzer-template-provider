@@ -28,4 +28,6 @@ java -jar antlr-4.8-complete.jar \
 mv resources/*.py binalyzer_template_provider/generated
 rm antlr-4.8-complete.jar
 
+pip3 install binalyzer-core
+
 python3 -m pytest tests --cov=binalyzer_template_provider --cov-fail-under=20
