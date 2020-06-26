@@ -42,7 +42,7 @@ class XMLTemplateParser(XMLParserListener):
     DEFAULT_SIZING = Sizing.Auto
 
     ATTRIBUTES = {
-        "id": lambda self, attribute, template: self._parse_id_of(attribute),
+        "name": lambda self, attribute, template: self._parse_id_of(attribute),
         "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode(
             attribute
         ),
@@ -85,12 +85,12 @@ class XMLTemplateParser(XMLParserListener):
         element = self._parse_attributes_of(Template(), parent, ctx)
         self._elements.append(element)
         if parent:
-            parent.add_child(element)
+            element.parent = parent
         else:
             self._root = element
         _log.debug(
             "Element: %s (addressing mode: %s)",
-            element.id,
+            element.name,
             element.addressing_mode.value,
         )
 
@@ -112,7 +112,6 @@ class XMLTemplateParser(XMLParserListener):
         return attribute.value().getText()[1:-1]
 
     def _parse_attributes_of(self, template, parent, ctx):
-        template.parent = parent
         template.addressing_mode = self.DEFAULT_ADDRESSING_MODE
         template.sizing = self.DEFAULT_SIZING
         for attribute_name, attribute_factory in self.ATTRIBUTES.items():
@@ -121,6 +120,7 @@ class XMLTemplateParser(XMLParserListener):
                     attribute = attribute_factory(self, attribute, template)
                     attribute_setter_name = attribute_name.replace("-", "_")
                     template.__dict__[attribute_setter_name] = attribute
+        template.parent = parent
         return template
 
     def _parse_attribute_value(

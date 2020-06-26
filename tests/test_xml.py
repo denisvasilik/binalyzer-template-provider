@@ -19,12 +19,12 @@ class TemplateElementTestCase(unittest.TestCase):
     def test_id_attribute(self):
         template = XMLTemplateParser(
             """
-            <template id="test-template0">
+            <template name="test-template0">
             </template>
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.id, "test-template0")
+        self.assertEqual(template.name, "test-template0")
 
     def test_offset_attribute(self):
         template = XMLTemplateParser(
@@ -91,10 +91,10 @@ class FieldElementTestCase(unittest.TestCase):
     def test_field_padding_before(self):
         template = XMLTemplateParser(
             """
-            <template id="template0">
-                <layout id="layout0">
-                    <area id="area0">
-                        <field id="field0" padding-before="0x100">
+            <template name="template0">
+                <layout name="layout0">
+                    <area name="area0">
+                        <field name="field0" padding-before="0x100">
                         </field>
                     </area>
                 </layout>
@@ -108,10 +108,10 @@ class FieldElementTestCase(unittest.TestCase):
     def test_field_padding_after(self):
         template = XMLTemplateParser(
             """
-            <template id="template0">
-                <layout id="layout0">
-                    <area id="area0">
-                        <field id="field0" padding-after="0x100">
+            <template name="template0">
+                <layout name="layout0">
+                    <area name="area0">
+                        <field name="field0" padding-after="0x100">
                         </field>
                     </area>
                 </layout>
@@ -137,7 +137,7 @@ class TemplateParserTestCase(unittest.TestCase):
         template = XMLTemplateParser(
             """
             <template>
-                <layout id="layout0">
+                <layout name="layout0">
                 </layout>
             </template>
         """
@@ -145,14 +145,14 @@ class TemplateParserTestCase(unittest.TestCase):
         self.assertTrue(isinstance(template.layout0, Template))
         self.assertEqual(id(template.layout0), id(template.children[0]))
         self.assertEqual(template.layout0.parent, template)
-        self.assertEqual(template.layout0.id, "layout0")
+        self.assertEqual(template.layout0.name, "layout0")
 
     def test_parse_area(self):
         template = XMLTemplateParser(
             """
-            <template id="template0">
-                <layout id="layout0">
-                    <area id="area0">
+            <template name="template0">
+                <layout name="layout0">
+                    <area name="area0">
                     </area>
                 </layout>
             </template>
@@ -163,18 +163,18 @@ class TemplateParserTestCase(unittest.TestCase):
             id(template.layout0.area0), id(template.children[0].children[0])
         )
         self.assertEqual(template.layout0.area0.parent, template.layout0)
-        self.assertEqual(template.layout0.area0.id, "area0")
+        self.assertEqual(template.layout0.area0.name, "area0")
 
     def test_parse_field(self):
         template = XMLTemplateParser(
             """
-            <template id="template0">
-                <layout id="layout0">
-                    <area id="area0">
-                        <field id="field0" size="4"></field>
-                        <field id="field1" size="4"></field>
-                        <field id="field2" size="4"></field>
-                        <field id="field3" size="4"></field>
+            <template name="template0">
+                <layout name="layout0">
+                    <area name="area0">
+                        <field name="field0" size="4"></field>
+                        <field name="field1" size="4"></field>
+                        <field name="field2" size="4"></field>
+                        <field name="field3" size="4"></field>
                     </area>
                 </layout>
             </template>
@@ -184,7 +184,7 @@ class TemplateParserTestCase(unittest.TestCase):
         self.assertTrue(isinstance(field0, Template))
         self.assertEqual(id(field0), id(template.children[0].children[0].children[0]))
         self.assertEqual(field0.parent, template.layout0.area0)
-        self.assertEqual(field0.id, "field0")
+        self.assertEqual(field0.name, "field0")
 
     def test_parse_repetition(self):
         pass
