@@ -11,8 +11,8 @@ from binalyzer_core import (
     ByteOrder,
     AddressingMode,
     ResolvableValue,
-    SimpleDataProvider,
-    SimpleTemplateProvider,
+    DataProvider,
+    TemplateProvider,
 )
 from binalyzer_template_provider import XMLTemplateParser
 
@@ -80,13 +80,10 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(test_data_stream)
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(test_data_stream)
         template.binding_context = BindingContext(template_provider, data_provider)
-        template.propagate()
-        template.layout0.propagate()
         area = template.layout0.area0
-        area.propagate()
         area.children[0].value = bytes([0] * 32)
         area.children[1].value = bytes([1] * 32)
         area.children[2].value = bytes([2] * 32)
@@ -110,13 +107,10 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(test_data_stream)
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(test_data_stream)
         template.binding_context = BindingContext(template_provider, data_provider)
-        template.propagate()
-        template.layout0.propagate()
         area = template.layout0.area0
-        area.propagate()
         area.children[0].value = bytes([0] * 32)
         area.children[1].value = bytes([1] * 32)
         area.children[2].value = bytes([2] * 32)
@@ -137,10 +131,9 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(test_data_stream)
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(test_data_stream)
         template.binding_context = BindingContext(template_provider, data_provider)
-        template.propagate()
         field1_size = find_by_attr(template, "field1_size")
         field1 = find_by_attr(template, "field1")
         field2 = find_by_attr(template, "field2")
@@ -163,8 +156,8 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(data_stream)
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(data_stream)
         binalyzer = Binalyzer(template_provider, data_provider)
         binalyzer.template = template_provider.template
         field1_size = find_by_attr(template, "field1_size")
@@ -188,8 +181,8 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(io.BytesIO(bytes(4 * [0x0])))
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(io.BytesIO(bytes(4 * [0x0])))
         binalyzer = Binalyzer(template_provider, data_provider)
         binalyzer.data = io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00]))
         binalyzer.template = template_provider.template
@@ -220,9 +213,9 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider0 = SimpleTemplateProvider(template0)
-        template_provider1 = SimpleTemplateProvider(template1)
-        data_provider = SimpleDataProvider(io.BytesIO(bytes(4 * [0x0])))
+        template_provider0 = TemplateProvider(template0)
+        template_provider1 = TemplateProvider(template1)
+        data_provider = DataProvider(io.BytesIO(bytes(4 * [0x0])))
         binalyzer = Binalyzer(template_provider0, data_provider)
         binalyzer.template = template_provider1.template
         binalyzer.data = io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00]))
@@ -587,10 +580,9 @@ class SiteAttributeTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
         template.binding_context = BindingContext(template_provider, data_provider)
-        template.propagate()
         self.assertEqual(template.size.value, 8)
 
     def test_size_with_parent_override(self):
@@ -604,10 +596,9 @@ class SiteAttributeTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = SimpleTemplateProvider(template)
-        data_provider = SimpleDataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
+        template_provider = TemplateProvider(template)
+        data_provider = DataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
         template.binding_context = BindingContext(template_provider, data_provider)
-        template.propagate()
         self.assertEqual(template.size.value, 16)
 
     def test_size_and_padding(self):
