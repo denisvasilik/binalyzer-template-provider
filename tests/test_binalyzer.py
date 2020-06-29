@@ -156,10 +156,7 @@ class BinalyzerTestCase(unittest.TestCase):
                 </layout>
             </template>"""
         ).parse()
-        template_provider = TemplateProvider(template)
-        data_provider = DataProvider(data_stream)
-        binalyzer = Binalyzer(template_provider, data_provider)
-        binalyzer.template = template_provider.template
+        binalyzer = Binalyzer(template, data_stream)
         field1_size = find_by_attr(template, "field1_size")
         field1 = find_by_attr(template, "field1")
         field2 = find_by_attr(template, "field2")

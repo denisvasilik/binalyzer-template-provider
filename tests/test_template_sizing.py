@@ -121,8 +121,7 @@ def test_sizing_explicit_auto_root_no_children():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 0
 
@@ -134,8 +133,7 @@ def test_sizing_implicit_auto_root_no_children():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 0
 
@@ -148,8 +146,7 @@ def test_sizing_explicit_auto_root_children():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 128
 
@@ -162,8 +159,7 @@ def test_sizing_implicit_auto_root_children():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 128
 
@@ -175,8 +171,7 @@ def test_sizing_implicit_fix():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 256
     assert binalyzer.template.root.sizing == Sizing.Fix
@@ -189,8 +184,7 @@ def test_sizing_explicit_fix():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 256
     assert binalyzer.template.root.sizing == Sizing.Fix
@@ -203,8 +197,7 @@ def test_sizing_fix_override_with_sizing_set_to_auto():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 256
     assert binalyzer.template.root.sizing == Sizing.Fix
@@ -217,8 +210,7 @@ def test_sizing_fix_override_with_sizing_set_to_stretch():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.size.value == 256
     assert binalyzer.template.root.sizing == Sizing.Fix
@@ -231,10 +223,7 @@ def test_sizing_stretch_root_template():
         </template>
     """
     ).parse()
-    data_provider = DataProvider(bytes([0] * 512))
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider, data_provider)
-    binalyzer.template = template_provider.template
+    binalyzer = Binalyzer(template, bytes([0] * 512))
     binalyzer.data = io.BytesIO(bytes([0] * 512))
 
     assert binalyzer.template.root.size.value == 512
@@ -250,8 +239,7 @@ def test_sizing_stretch_to_parent():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.area1.size.value == 64
     assert binalyzer.template.root.area1.sizing == Sizing.Stretch
@@ -268,8 +256,7 @@ def test_sizing_stretch_to_sibling():
         </template>
     """
     ).parse()
-    template_provider = TemplateProvider(template)
-    binalyzer = Binalyzer(template_provider)
+    binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.area1.size.value == 60
     assert binalyzer.template.root.area1.sizing == Sizing.Stretch
