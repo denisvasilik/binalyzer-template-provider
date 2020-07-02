@@ -14,13 +14,9 @@ import logging
 from binalyzer_core import (
     ByteOrder,
     AddressingMode,
-    ResolvableValue,
-    Offset,
-    Size,
+    ValueProperty,
+    ReferenceProperty,
     Sizing,
-    Boundary,
-    PaddingAfter,
-    PaddingBefore,
     Template,
 )
 
@@ -46,21 +42,19 @@ class XMLTemplateParser(XMLParserListener):
         "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode(
             attribute
         ),
-        "offset": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, Offset
-        ),
         "sizing": lambda self, attribute, template: self._parse_sizing(attribute),
-        "size": lambda self, attribute, template: self._parse_size(
-            attribute, template, Size
+        "size": lambda self, attribute, template: self._parse_size(attribute, template),
+        "offset": lambda self, attribute, template: self._parse_attribute_value(
+            attribute, template
         ),
-        "boundary": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, Boundary
+        "boundary": lambda self, attribute, template: self._parse_boundary(
+            attribute, template
         ),
         "padding-before": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, PaddingBefore
+            attribute, template
         ),
         "padding-after": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, PaddingAfter
+            attribute, template
         ),
     }
 
@@ -101,9 +95,17 @@ class XMLTemplateParser(XMLParserListener):
     def _parse_addressing_mode(self, attribute):
         return AddressingMode(attribute.value().getText()[1:-1])
 
-    def _parse_size(self, attribute, template, attribute_type):
+    def _parse_size(self, attribute, template):
         template.sizing = Sizing.Fix
-        return self._parse_attribute_value(attribute, template, attribute_type)
+        return self._parse_attribute_value(attribute, template)
+
+    def _parse_boundary(self, attribute, template):
+        boundary_property = self._parse_attribute_value(attribute, template)
+
+        if not template.children:
+            template.size = ValueProperty(boundary_property.value)
+
+        return boundary_property
 
     def _parse_sizing(self, attribute):
         return Sizing(attribute.value().getText()[1:-1])
@@ -123,28 +125,24 @@ class XMLTemplateParser(XMLParserListener):
         template.parent = parent
         return template
 
-    def _parse_attribute_value(
-        self, attribute, template, attribute_type=ResolvableValue
-    ):
+    def _parse_attribute_value(self, attribute, template):
         attribute_name = attribute.Name().getText()
 
         if attribute.value() is not None:
             _log.debug("Parse value of attribute %s", attribute_name)
             value = int(attribute.value().getText()[1:-1], base=0)
-            return attribute_type(value, template=template)
+            return ValueProperty(value, template=template)
 
         if attribute.binding() is not None:
             _log.debug("Parse attribute reference of %s", attribute_name)
             names = attribute.binding().sequence().BRACKET_NAME()
-            ref_id = names[0].getText()  # mandatory
-            byte_order = ByteOrder.LittleEndian  # optional
+            reference_name = names[0].getText()  # mandatory
+            template.byte_order = ByteOrder.LittleEndian  # optional
             if len(names) > 1 and names[1].getText() == "ByteOrder":
-                byte_order = ByteOrder(names[2].getText())  # mandatory
-            return attribute_type(
-                template=template, ref_id=ref_id, byte_order=byte_order
-            )
+                template.byte_order = ByteOrder(names[2].getText())  # mandatory
+            return ReferenceProperty(template, reference_name)
 
-        return attribute_type(0, template=template)
+        return ValueProperty()
 
 
 class XMLTemplateFileParser(XMLTemplateParser):
