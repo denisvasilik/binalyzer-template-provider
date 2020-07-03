@@ -17,7 +17,7 @@ fi
 
 if [ ! -z "$TRAVIS_COMMIT" ]
 then
-    sed -i 's/__commit__ = \"00000000\"/__commit__ = \"'${TRAVIS_COMMIT::6}'\"/g' binalyzer_template_provider/__init__.py
+    sed -i 's/__commit__ = \"0000000\"/__commit__ = \"'${TRAVIS_COMMIT::7}'\"/g' binalyzer_template_provider/__init__.py
 fi
 
 curl -O https://www.antlr.org/download/antlr-4.8-complete.jar

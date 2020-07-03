@@ -14,6 +14,6 @@ name = "binalyzer_template_provider"
 __tag__ = ""
 __build__ = 0
 __version__ = "{}".format(__tag__)
-__commit__ = "00000000"
+__commit__ = "0000000"
 
 from .xml import XMLTemplateParser, XMLTemplateFileParser
