@@ -5,7 +5,6 @@ from anytree.util import rightsibling, leftsibling
 
 from binalyzer_core import (
     Binalyzer,
-    Sizing,
     TemplateProvider,
     ZeroedDataProvider,
     DataProvider,
@@ -123,7 +122,7 @@ def test_sizing_explicit_auto_root_no_children():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 0
+    assert binalyzer.template.root.size == 0
 
 
 def test_sizing_implicit_auto_root_no_children():
@@ -135,7 +134,7 @@ def test_sizing_implicit_auto_root_no_children():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 0
+    assert binalyzer.template.root.size == 0
 
 
 def test_sizing_explicit_auto_root_children():
@@ -148,7 +147,7 @@ def test_sizing_explicit_auto_root_children():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 128
+    assert binalyzer.template.root.size == 128
 
 
 def test_sizing_implicit_auto_root_children():
@@ -161,7 +160,7 @@ def test_sizing_implicit_auto_root_children():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 128
+    assert binalyzer.template.root.size == 128
 
 
 def test_sizing_implicit_fix():
@@ -173,8 +172,7 @@ def test_sizing_implicit_fix():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 256
-    assert binalyzer.template.root.sizing == Sizing.Fix
+    assert binalyzer.template.root.size == 256
 
 
 def test_sizing_explicit_fix():
@@ -186,8 +184,7 @@ def test_sizing_explicit_fix():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 256
-    assert binalyzer.template.root.sizing == Sizing.Fix
+    assert binalyzer.template.root.size == 256
 
 
 def test_sizing_fix_override_with_sizing_set_to_auto():
@@ -199,8 +196,7 @@ def test_sizing_fix_override_with_sizing_set_to_auto():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.size.value == 256
-    assert binalyzer.template.root.sizing == Sizing.Fix
+    assert binalyzer.template.root.size == 256
 
 
 def test_sizing_fix_override_with_sizing_set_to_stretch():
@@ -211,9 +207,7 @@ def test_sizing_fix_override_with_sizing_set_to_stretch():
     """
     ).parse()
     binalyzer = Binalyzer(template)
-
-    assert binalyzer.template.root.size.value == 256
-    assert binalyzer.template.root.sizing == Sizing.Fix
+    assert binalyzer.template.root.size == 256
 
 
 def test_sizing_stretch_root_template():
@@ -226,8 +220,7 @@ def test_sizing_stretch_root_template():
     binalyzer = Binalyzer(template, bytes([0] * 512))
     binalyzer.data = io.BytesIO(bytes([0] * 512))
 
-    assert binalyzer.template.root.size.value == 512
-    assert binalyzer.template.root.sizing == Sizing.Stretch
+    assert binalyzer.template.root.size == 512
 
 
 def test_sizing_stretch_to_parent():
@@ -241,8 +234,7 @@ def test_sizing_stretch_to_parent():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.area1.size.value == 64
-    assert binalyzer.template.root.area1.sizing == Sizing.Stretch
+    assert binalyzer.template.root.area1.size == 64
 
 
 @pytest.mark.skip("origin attribute is not supported")
@@ -258,5 +250,4 @@ def test_sizing_stretch_to_sibling():
     ).parse()
     binalyzer = Binalyzer(template)
 
-    assert binalyzer.template.root.area1.size.value == 60
-    assert binalyzer.template.root.area1.sizing == Sizing.Stretch
+    assert binalyzer.template.root.area1.size == 60

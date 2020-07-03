@@ -8,8 +8,6 @@ from binalyzer_core import (
     BindingContext,
     Binalyzer,
     Template,
-    ByteOrder,
-    AddressingMode,
     DataProvider,
     TemplateProvider,
 )
@@ -24,7 +22,7 @@ TEST_DATA_STREAM_128 = io.BytesIO(
 def assertStreamEqual(first, second):
     for first_byte in first:
         for second_byte in second:
-            self.assertEqual(first_byte, second_byte)
+            assert first_byte == second_byte
 
 
 def test_data_generation():
@@ -54,10 +52,10 @@ def test_data_generation():
 
 
 def test_field_absolute_offset():
-    test_data_stream = io.BytesIO(bytes([0] * 128))
     expected_data_stream = io.BytesIO(
         bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
     )
+    test_data_stream = io.BytesIO(bytes([0] * 128))
     template = XMLTemplateParser(
         """<template name="template0">
             <layout name="layout0">
@@ -70,9 +68,7 @@ def test_field_absolute_offset():
             </layout>
         </template>"""
     ).parse()
-    template_provider = TemplateProvider(template)
-    data_provider = DataProvider(test_data_stream)
-    template.binding_context = BindingContext(template_provider, data_provider)
+    binalyzer = Binalyzer(template, test_data_stream)
     area = template.layout0.area0
     area.children[0].value = bytes([0] * 32)
     area.children[1].value = bytes([1] * 32)
@@ -82,10 +78,10 @@ def test_field_absolute_offset():
 
 
 def test_field_relative_offset():
-    test_data_stream = io.BytesIO(bytes([0] * 128))
     expected_data_stream = io.BytesIO(
         bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
     )
+    test_data_stream = io.BytesIO(bytes([0] * 128))
     template = XMLTemplateParser(
         """<template name="template0">
             <layout name="layout0">
@@ -98,9 +94,7 @@ def test_field_relative_offset():
             </layout>
         </template>"""
     ).parse()
-    template_provider = TemplateProvider(template)
-    data_provider = DataProvider(test_data_stream)
-    template.binding_context = BindingContext(template_provider, data_provider)
+    binalyzer = Binalyzer(template, test_data_stream)
     area = template.layout0.area0
     area.children[0].value = bytes([0] * 32)
     area.children[1].value = bytes([1] * 32)
@@ -110,7 +104,7 @@ def test_field_relative_offset():
 
 
 def test_field_cross_reference():
-    test_data_stream = io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00]))
+    data = io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00]))
     template = XMLTemplateParser(
         """
         <template name="template0">
@@ -123,9 +117,7 @@ def test_field_cross_reference():
             </layout>
         </template>"""
     ).parse()
-    template_provider = TemplateProvider(template)
-    data_provider = DataProvider(test_data_stream)
-    template.binding_context = BindingContext(template_provider, data_provider)
+    binalyzer = Binalyzer(template, data)
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
@@ -172,11 +164,8 @@ def test_binding_at_stream_assignment():
             </layout>
         </template>"""
     ).parse()
-    template_provider = TemplateProvider(template)
-    data_provider = DataProvider(io.BytesIO(bytes(4 * [0x0])))
-    binalyzer = Binalyzer(template_provider, data_provider)
+    binalyzer = Binalyzer(template, io.BytesIO(bytes(4 * [0x0])))
     binalyzer.data = io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00]))
-    binalyzer.template = template_provider.template
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
@@ -534,8 +523,8 @@ def test_size_aggregation_using_same_offsets():
             </layout>
         </template>"""
     ).parse()
-    assert template.size == 42
-    assert template.layout0.size == 42
+    assert template.size == 64
+    assert template.layout0.size == 64
     assert template.layout0.area00.size == 4
     assert template.layout0.area00.field1.size == 1
     assert template.layout0.area00.field2.size == 1

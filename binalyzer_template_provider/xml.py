@@ -12,11 +12,11 @@ import antlr4
 import logging
 
 from binalyzer_core import (
-    ByteOrder,
-    AddressingMode,
     ValueProperty,
     ReferenceProperty,
-    Sizing,
+    AutoSizeValueProperty,
+    StretchSizeProperty,
+    RelativeOffsetValueProperty,
     Template,
 )
 
@@ -34,33 +34,27 @@ def create_input_stream(filepath):
 
 class XMLTemplateParser(XMLParserListener):
 
-    DEFAULT_ADDRESSING_MODE = AddressingMode.Relative
-    DEFAULT_SIZING = Sizing.Auto
+    DEFAULT_ADDRESSING_MODE = "relative"
+    DEFAULT_SIZING = "auto"
 
     ATTRIBUTES = {
-        "name": lambda self, attribute, template: self._parse_name_attribute(
-            attribute, template
+        "name": lambda self, attribute, template, ctx: self._parse_name_attribute(
+            attribute, template, ctx
         ),
-        "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode_attribute(
-            attribute, template
+        "offset": lambda self, attribute, template, ctx: self._parse_offset_attribute(
+            attribute, template, ctx
         ),
-        "sizing": lambda self, attribute, template: self._parse_sizing_attribute(
-            attribute, template
+        "size": lambda self, attribute, template, ctx: self._parse_size_attribute(
+            attribute, template, ctx
         ),
-        "size": lambda self, attribute, template: self._parse_size_attribute(
-            attribute, template
+        "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
+            attribute, template, ctx
         ),
-        "offset": lambda self, attribute, template: self._parse_offset_attribute(
-            attribute, template
+        "padding-after": lambda self, attribute, template, ctx: self._parse_padding_after_attribute(
+            attribute, template, ctx
         ),
-        "boundary": lambda self, attribute, template: self._parse_boundary_attribute(
-            attribute, template
-        ),
-        "padding-before": lambda self, attribute, template: self._parse_padding_before_attribute(
-            attribute, template
-        ),
-        "padding-after": lambda self, attribute, template: self._parse_padding_after_attribute(
-            attribute, template
+        "boundary": lambda self, attribute, template, ctx: self._parse_boundary_attribute(
+            attribute, template, ctx
         ),
     }
 
@@ -94,38 +88,71 @@ class XMLTemplateParser(XMLParserListener):
             self._elements.pop()
 
     def _parse_template_attributes(self, template, parent, ctx):
+        self._parse_sizing_attribute(template, ctx)
+
         for attribute_name, attribute_func in self.ATTRIBUTES.items():
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    attribute_func(self, attribute, template)
+                    attribute_func(self, attribute, template, ctx)
         template.parent = parent
         return template
 
-    def _parse_name_attribute(self, attribute, template):
+    def _parse_name_attribute(self, attribute, template, ctx):
         template.name = attribute.value().getText()[1:-1]
 
-    def _parse_size_attribute(self, attribute, template):
+    def _parse_offset_attribute(self, attribute, template, ctx):
+        offset_property = self._parse_attribute_value(attribute, template)
+        addressing_mode = self._parse_addressing_mode_attribute(ctx)
+
+        if addressing_mode == "absolute":
+            template.offset_property = offset_property
+        elif addressing_mode == "relative":
+            if isinstance(offset_property, ReferenceProperty):
+                template.offset_property = RelativeOffsetReferenceProperty(template)
+            else:
+                template.offset_property = RelativeOffsetValueProperty(
+                    template, ignore_boundary=True
+                )
+                template.offset_property.value = offset_property.value
+        else:
+            raise RuntimeError("Expected 'absolute' or 'relative'.")
+
+    def _parse_addressing_mode_attribute(self, ctx):
+        for attribute in ctx.attribute():
+            if attribute.Name().getText() == "addressing-mode":
+                return attribute.value().getText()[1:-1]
+        return self.DEFAULT_ADDRESSING_MODE
+
+    def _parse_size_attribute(self, attribute, template, ctx):
         template.size_property = self._parse_attribute_value(attribute, template)
 
-    def _parse_boundary_attribute(self, attribute, template):
-        boundary_property = self._parse_attribute_value(attribute, template)
+    def _parse_sizing_attribute(self, template, ctx):
+        sizing = self.DEFAULT_SIZING
+        for attribute in ctx.attribute():
+            if attribute.Name().getText() == "sizing":
+                sizing = attribute.value().getText()[1:-1]
 
-        if not isinstance(template.size, ValueProperty) and not template.children:
-            template.size = ValueProperty(boundary_property.value)
+        if sizing == "fix":
+            template.size_property = ValueProperty()
+        elif sizing == "auto":
+            template.size_property = AutoSizeValueProperty(template)
+        elif sizing == "stretch":
+            template.size_property = StretchSizeProperty(template)
+        else:
+            raise RuntimeError("Expected 'auto', 'fix' or 'stretch'.")
 
-        template.boundary_property = boundary_property
+    def _parse_boundary_attribute(self, attribute, template, ctx):
+        template.boundary_property = self._parse_attribute_value(attribute, template)
 
-    def _parse_addressing_mode_attribute(self, attribute):
-        addressing_mode = AddressingMode(attribute.value().getText()[1:-1])
+    def _parse_padding_before_attribute(self, attribute, template, ctx):
+        template.padding_before_property = self._parse_attribute_value(
+            attribute, template
+        )
 
-    def _parse_sizing_attribute(self, attribute, template):
-        sizing = Sizing(attribute.value().getText()[1:-1])
-
-    def _parse_padding_before_attribute(self, attribute, template):
-        padding_before_property = self._parse_attribute_value(attribute, template)
-
-    def _parse_padding_after_attribute(self, attribute, template):
-        padding_after_property = self._parse_attribute_value(attribute, template)
+    def _parse_padding_after_attribute(self, attribute, template, ctx):
+        template.padding_after_property = self._parse_attribute_value(
+            attribute, template
+        )
 
     def _parse_attribute_value(self, attribute, template):
         attribute_name = attribute.Name().getText()
@@ -139,9 +166,9 @@ class XMLTemplateParser(XMLParserListener):
             _log.debug("Parse attribute reference of %s", attribute_name)
             names = attribute.binding().sequence().BRACKET_NAME()
             reference_name = names[0].getText()  # mandatory
-            template.byte_order = ByteOrder.LittleEndian  # optional
+            template.byte_order = "LittleEndian"  # optional
             if len(names) > 1 and names[1].getText() == "ByteOrder":
-                template.byte_order = ByteOrder(names[2].getText())  # mandatory
+                template.byte_order = names[2].getText()  # mandatory
             return ReferenceProperty(template, reference_name)
 
         return ValueProperty()
