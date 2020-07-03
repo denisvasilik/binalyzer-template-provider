@@ -1,7 +1,7 @@
 import unittest
 import antlr4
 
-from binalyzer_core import Template, AddressingMode, ByteOrder
+from binalyzer_core import Template
 from binalyzer_template_provider import XMLTemplateParser, XMLTemplateFileParser
 from binalyzer_template_provider.xml import create_input_stream
 
@@ -34,7 +34,7 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.offset.value, 0x100)
+        self.assertEqual(template.offset, 0x100)
 
     def test_addressing_mode_attribute(self):
         template = XMLTemplateParser(
@@ -44,7 +44,6 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.addressing_mode.value, "absolute")
 
     def test_size_attribute(self):
         template = XMLTemplateParser(
@@ -54,7 +53,7 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.size.value, 512)
+        self.assertEqual(template.size, 512)
 
     def test_boundary_attribute(self):
         template = XMLTemplateParser(
@@ -64,7 +63,7 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.boundary.value, 0x800)
+        self.assertEqual(template.boundary, 0x800)
 
     def test_padding_before_attribute(self):
         template = XMLTemplateParser(
@@ -74,7 +73,7 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.padding_before.value, 0x100)
+        self.assertEqual(template.padding_before, 0x100)
 
     def test_padding_after_attribute(self):
         template = XMLTemplateParser(
@@ -84,7 +83,7 @@ class TemplateElementTestCase(unittest.TestCase):
         """
         ).parse()
         self.assertTrue(isinstance(template, Template))
-        self.assertEqual(template.padding_after.value, 0x400)
+        self.assertEqual(template.padding_after, 0x400)
 
 
 class FieldElementTestCase(unittest.TestCase):
@@ -102,8 +101,8 @@ class FieldElementTestCase(unittest.TestCase):
         """
         ).parse()
         field0 = template.layout0.area0.field0
-        self.assertEqual(field0.padding_before.value, 0x100)
-        self.assertEqual(field0.padding_after.value, 0)
+        self.assertEqual(field0.padding_before, 0x100)
+        self.assertEqual(field0.padding_after, 0)
 
     def test_field_padding_after(self):
         template = XMLTemplateParser(
@@ -119,8 +118,8 @@ class FieldElementTestCase(unittest.TestCase):
         """
         ).parse()
         field0 = template.layout0.area0.field0
-        self.assertEqual(field0.padding_before.value, 0)
-        self.assertEqual(field0.padding_after.value, 0x100)
+        self.assertEqual(field0.padding_before, 0)
+        self.assertEqual(field0.padding_after, 0x100)
 
 
 class TemplateParserTestCase(unittest.TestCase):

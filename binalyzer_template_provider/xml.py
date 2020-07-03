@@ -12,15 +12,11 @@ import antlr4
 import logging
 
 from binalyzer_core import (
-    ByteOrder,
-    AddressingMode,
-    ResolvableValue,
-    Offset,
-    Size,
-    Sizing,
-    Boundary,
-    PaddingAfter,
-    PaddingBefore,
+    ValueProperty,
+    ReferenceProperty,
+    AutoSizeValueProperty,
+    StretchSizeProperty,
+    RelativeOffsetValueProperty,
     Template,
 )
 
@@ -38,29 +34,27 @@ def create_input_stream(filepath):
 
 class XMLTemplateParser(XMLParserListener):
 
-    DEFAULT_ADDRESSING_MODE = AddressingMode.Relative
-    DEFAULT_SIZING = Sizing.Auto
+    DEFAULT_ADDRESSING_MODE = "relative"
+    DEFAULT_SIZING = "auto"
 
     ATTRIBUTES = {
-        "name": lambda self, attribute, template: self._parse_id_of(attribute),
-        "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode(
-            attribute
+        "name": lambda self, attribute, template, ctx: self._parse_name_attribute(
+            attribute, template, ctx
         ),
-        "offset": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, Offset
+        "offset": lambda self, attribute, template, ctx: self._parse_offset_attribute(
+            attribute, template, ctx
         ),
-        "sizing": lambda self, attribute, template: self._parse_sizing(attribute),
-        "size": lambda self, attribute, template: self._parse_size(
-            attribute, template, Size
+        "size": lambda self, attribute, template, ctx: self._parse_size_attribute(
+            attribute, template, ctx
         ),
-        "boundary": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, Boundary
+        "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
+            attribute, template, ctx
         ),
-        "padding-before": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, PaddingBefore
+        "padding-after": lambda self, attribute, template, ctx: self._parse_padding_after_attribute(
+            attribute, template, ctx
         ),
-        "padding-after": lambda self, attribute, template: self._parse_attribute_value(
-            attribute, template, PaddingAfter
+        "boundary": lambda self, attribute, template, ctx: self._parse_boundary_attribute(
+            attribute, template, ctx
         ),
     }
 
@@ -82,69 +76,102 @@ class XMLTemplateParser(XMLParserListener):
         parent = None
         if self._elements:
             parent = self._elements[-1]
-        element = self._parse_attributes_of(Template(), parent, ctx)
+        element = self._parse_template_attributes(Template(), parent, ctx)
         self._elements.append(element)
         if parent:
             element.parent = parent
         else:
             self._root = element
-        _log.debug(
-            "Element: %s (addressing mode: %s)",
-            element.name,
-            element.addressing_mode.value,
-        )
 
     def exitElement(self, ctx):
         if self._elements:
             self._elements.pop()
 
-    def _parse_addressing_mode(self, attribute):
-        return AddressingMode(attribute.value().getText()[1:-1])
+    def _parse_template_attributes(self, template, parent, ctx):
+        self._parse_sizing_attribute(template, ctx)
 
-    def _parse_size(self, attribute, template, attribute_type):
-        template.sizing = Sizing.Fix
-        return self._parse_attribute_value(attribute, template, attribute_type)
-
-    def _parse_sizing(self, attribute):
-        return Sizing(attribute.value().getText()[1:-1])
-
-    def _parse_id_of(self, attribute):
-        return attribute.value().getText()[1:-1]
-
-    def _parse_attributes_of(self, template, parent, ctx):
-        template.addressing_mode = self.DEFAULT_ADDRESSING_MODE
-        template.sizing = self.DEFAULT_SIZING
-        for attribute_name, attribute_factory in self.ATTRIBUTES.items():
+        for attribute_name, attribute_func in self.ATTRIBUTES.items():
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    attribute = attribute_factory(self, attribute, template)
-                    attribute_setter_name = attribute_name.replace("-", "_")
-                    template.__dict__[attribute_setter_name] = attribute
+                    attribute_func(self, attribute, template, ctx)
         template.parent = parent
         return template
 
-    def _parse_attribute_value(
-        self, attribute, template, attribute_type=ResolvableValue
-    ):
+    def _parse_name_attribute(self, attribute, template, ctx):
+        template.name = attribute.value().getText()[1:-1]
+
+    def _parse_offset_attribute(self, attribute, template, ctx):
+        offset_property = self._parse_attribute_value(attribute, template)
+        addressing_mode = self._parse_addressing_mode_attribute(ctx)
+
+        if addressing_mode == "absolute":
+            template.offset_property = offset_property
+        elif addressing_mode == "relative":
+            if isinstance(offset_property, ReferenceProperty):
+                template.offset_property = RelativeOffsetReferenceProperty(template)
+            else:
+                template.offset_property = RelativeOffsetValueProperty(
+                    template, ignore_boundary=True
+                )
+                template.offset_property.value = offset_property.value
+        else:
+            raise RuntimeError("Expected 'absolute' or 'relative'.")
+
+    def _parse_addressing_mode_attribute(self, ctx):
+        for attribute in ctx.attribute():
+            if attribute.Name().getText() == "addressing-mode":
+                return attribute.value().getText()[1:-1]
+        return self.DEFAULT_ADDRESSING_MODE
+
+    def _parse_size_attribute(self, attribute, template, ctx):
+        template.size_property = self._parse_attribute_value(attribute, template)
+
+    def _parse_sizing_attribute(self, template, ctx):
+        sizing = self.DEFAULT_SIZING
+        for attribute in ctx.attribute():
+            if attribute.Name().getText() == "sizing":
+                sizing = attribute.value().getText()[1:-1]
+
+        if sizing == "fix":
+            template.size_property = ValueProperty()
+        elif sizing == "auto":
+            template.size_property = AutoSizeValueProperty(template)
+        elif sizing == "stretch":
+            template.size_property = StretchSizeProperty(template)
+        else:
+            raise RuntimeError("Expected 'auto', 'fix' or 'stretch'.")
+
+    def _parse_boundary_attribute(self, attribute, template, ctx):
+        template.boundary_property = self._parse_attribute_value(attribute, template)
+
+    def _parse_padding_before_attribute(self, attribute, template, ctx):
+        template.padding_before_property = self._parse_attribute_value(
+            attribute, template
+        )
+
+    def _parse_padding_after_attribute(self, attribute, template, ctx):
+        template.padding_after_property = self._parse_attribute_value(
+            attribute, template
+        )
+
+    def _parse_attribute_value(self, attribute, template):
         attribute_name = attribute.Name().getText()
 
         if attribute.value() is not None:
             _log.debug("Parse value of attribute %s", attribute_name)
             value = int(attribute.value().getText()[1:-1], base=0)
-            return attribute_type(value, template=template)
+            return ValueProperty(value, template=template)
 
         if attribute.binding() is not None:
             _log.debug("Parse attribute reference of %s", attribute_name)
             names = attribute.binding().sequence().BRACKET_NAME()
-            ref_id = names[0].getText()  # mandatory
-            byte_order = ByteOrder.LittleEndian  # optional
+            reference_name = names[0].getText()  # mandatory
+            template.byte_order = "LittleEndian"  # optional
             if len(names) > 1 and names[1].getText() == "ByteOrder":
-                byte_order = ByteOrder(names[2].getText())  # mandatory
-            return attribute_type(
-                template=template, ref_id=ref_id, byte_order=byte_order
-            )
+                template.byte_order = names[2].getText()  # mandatory
+            return ReferenceProperty(template, reference_name)
 
-        return attribute_type(0, template=template)
+        return ValueProperty()
 
 
 class XMLTemplateFileParser(XMLTemplateParser):
