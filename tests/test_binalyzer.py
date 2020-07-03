@@ -49,7 +49,7 @@ def test_data_generation():
     area.children[2].value = bytes([2] * 32)
     area.children[3].value = bytes([3] * 32)
 
-    assert binalyzer.template.size.value == 128
+    assert binalyzer.template.size == 128
     assertStreamEqual(binalyzer.data, TEST_DATA_STREAM_128)
 
 
@@ -129,10 +129,10 @@ def test_field_cross_reference():
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
-    assert field1_size.size.value == 4
+    assert field1_size.size == 4
     assert field1_size.value == bytes([0x04, 0x00, 0x00, 0x00])
-    assert field1.size.value == 0x4
-    assert field2.size.value == 0x4000000
+    assert field1.size == 0x4
+    assert field2.size == 0x4000000
 
 
 def test_binding_at_object_instantiation():
@@ -153,10 +153,10 @@ def test_binding_at_object_instantiation():
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
-    assert field1_size.size.value == 4
+    assert field1_size.size == 4
     assert field1_size.value == bytes([0x04, 0x00, 0x00, 0x00])
-    assert field1.size.value == 0x4
-    assert field2.size.value == 0x4000000
+    assert field1.size == 0x4
+    assert field2.size == 0x4000000
 
 
 def test_binding_at_stream_assignment():
@@ -180,10 +180,10 @@ def test_binding_at_stream_assignment():
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
-    assert field1_size.size.value == 4
+    assert field1_size.size == 4
     assert field1_size.value == bytes([0x04, 0x00, 0x00, 0x00])
-    assert field1.size.value == 0x4
-    assert field2.size.value == 0x4000000
+    assert field1.size == 0x4
+    assert field2.size == 0x4000000
 
 
 def test_binding_at_template_assignment():
@@ -214,10 +214,10 @@ def test_binding_at_template_assignment():
     field1_size = find_by_attr(template1, "field1_size")
     field1 = find_by_attr(template1, "field1")
     field2 = find_by_attr(template1, "field2")
-    assert field1_size.size.value == 4
+    assert field1_size.size == 4
     assert field1_size.value == bytes([0x04, 0x00, 0x00, 0x00])
-    assert field1.size.value == 0x4
-    assert field2.size.value == 0x4000000
+    assert field1.size == 0x4
+    assert field2.size == 0x4000000
 
 
 def test_boundary_and_matching_parent_offset():
@@ -230,11 +230,11 @@ def test_boundary_and_matching_parent_offset():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.offset.value == 0x200
-    assert template.layout0.area0.offset.value == 0x0
-    assert template.layout0.area0.absolute_address.value == 0x200
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x200
+    assert template.layout0.offset == 0x200
+    assert template.layout0.area0.offset == 0x0
+    assert template.layout0.area0.absolute_address == 0x200
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x200
 
 
 def test_boundary_and_not_matching_parent_offset():
@@ -247,11 +247,11 @@ def test_boundary_and_not_matching_parent_offset():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.offset.value == 0x300
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x400
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x200
+    assert template.layout0.offset == 0x300
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x400
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x200
 
 
 def test_offset_override():
@@ -264,11 +264,11 @@ def test_offset_override():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.offset.value == 0x300
-    assert template.layout0.area0.offset.value == 0x300
-    assert template.layout0.area0.absolute_address.value == 0x600
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x200
+    assert template.layout0.offset == 0x300
+    assert template.layout0.area0.offset == 0x300
+    assert template.layout0.area0.absolute_address == 0x600
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x200
 
 
 def test_size_override():
@@ -281,8 +281,8 @@ def test_size_override():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x500
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x500
 
 
 def test_size_override_wrapped():
@@ -297,10 +297,10 @@ def test_size_override_wrapped():
                 </layout>
             </template>"""
     ).parse()
-    assert template.layout0.wrapper.boundary.value == 0x200
-    assert template.layout0.wrapper.area0.boundary.value == 0x200
-    assert template.layout0.wrapper.area0.size.value == 0x500
-    assert template.layout0.wrapper.size.value == 0x600
+    assert template.layout0.wrapper.boundary == 0x200
+    assert template.layout0.wrapper.area0.boundary == 0x200
+    assert template.layout0.wrapper.area0.size == 0x500
+    assert template.layout0.wrapper.size == 0x600
 
 
 def test_size_with_children_and_even_boundary():
@@ -317,8 +317,8 @@ def test_size_with_children_and_even_boundary():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x400
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x400
 
 
 def test_size_with_children_and_uneven_boundary():
@@ -335,8 +335,8 @@ def test_size_with_children_and_uneven_boundary():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x600
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x600
 
 
 def test_size_with_children_and_even_padding():
@@ -357,8 +357,8 @@ def test_size_with_children_and_even_padding():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x600
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x600
 
 
 def test_size_with_children_and_uneven_padding():
@@ -379,8 +379,8 @@ def test_size_with_children_and_uneven_padding():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.boundary.value == 0x200
-    assert template.layout0.area0.size.value == 0x800
+    assert template.layout0.area0.boundary == 0x200
+    assert template.layout0.area0.size == 0x800
 
 
 def test_relative_offset_calculation():
@@ -409,20 +409,20 @@ def test_relative_offset_calculation():
             </layout>
         </template>"""
     ).parse()
-    assert template.offset.value == 0
-    assert template.absolute_address.value == 0
-    assert template.layout0.offset.value == 0
-    assert template.layout0.absolute_address.value == 0
-    assert template.layout0.area0.offset.value == 0
-    assert template.layout0.area0.absolute_address.value == 0
-    assert template.layout0.area1.offset.value == 0x300
-    assert template.layout0.area1.absolute_address.value == 0x300
-    assert template.layout1.offset.value == 0xA00
-    assert template.layout1.absolute_address.value == 0xA00
-    assert template.layout1.area2.offset.value == 0x0
-    assert template.layout1.area2.absolute_address.value == 0xA00
-    assert template.layout1.area3.offset.value == 0x300
-    assert template.layout1.area3.absolute_address.value == 0xD00
+    assert template.offset == 0
+    assert template.absolute_address == 0
+    assert template.layout0.offset == 0
+    assert template.layout0.absolute_address == 0
+    assert template.layout0.area0.offset == 0
+    assert template.layout0.area0.absolute_address == 0
+    assert template.layout0.area1.offset == 0x300
+    assert template.layout0.area1.absolute_address == 0x300
+    assert template.layout1.offset == 0xA00
+    assert template.layout1.absolute_address == 0xA00
+    assert template.layout1.area2.offset == 0x0
+    assert template.layout1.area2.absolute_address == 0xA00
+    assert template.layout1.area3.offset == 0x300
+    assert template.layout1.area3.absolute_address == 0xD00
 
 
 def test_absolute_address_assignment():
@@ -435,12 +435,12 @@ def test_absolute_address_assignment():
             </layout>
         </template>"""
     ).parse()
-    assert template.offset.value == 0x400
-    assert template.absolute_address.value == 0x400
-    assert template.layout0.offset.value == 0x200
-    assert template.layout0.absolute_address.value == 0x600
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x100
+    assert template.offset == 0x400
+    assert template.absolute_address == 0x400
+    assert template.layout0.offset == 0x200
+    assert template.layout0.absolute_address == 0x600
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x100
 
 
 def test_relative_offset_override():
@@ -453,12 +453,12 @@ def test_relative_offset_override():
             </layout>
         </template>"""
     ).parse()
-    assert template.offset.value == 0x400
-    assert template.absolute_address.value == 0x400
-    assert template.layout0.offset.value == 0x200
-    assert template.layout0.absolute_address.value == 0x600
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x700
+    assert template.offset == 0x400
+    assert template.absolute_address == 0x400
+    assert template.layout0.offset == 0x200
+    assert template.layout0.absolute_address == 0x600
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x700
 
 
 def test_size_aggregation_using_values_only():
@@ -495,17 +495,17 @@ def test_size_aggregation_using_values_only():
             </layout>
         </template>"""
     ).parse()
-    assert template.size.value == 60
-    assert template.layout0.size.value == 12
-    assert template.layout0.area00.size.value == 4
-    assert template.layout0.area00.field1.size.value == 1
-    assert template.layout0.area00.field2.size.value == 1
-    assert template.layout0.area00.field3.size.value == 1
-    assert template.layout0.area00.field4.size.value == 1
-    assert template.layout0.area01.size.value == 8
-    assert template.layout1.size.value == 48
-    assert template.layout1.area10.size.value == 16
-    assert template.layout1.area11.size.value == 32
+    assert template.size == 60
+    assert template.layout0.size == 12
+    assert template.layout0.area00.size == 4
+    assert template.layout0.area00.field1.size == 1
+    assert template.layout0.area00.field2.size == 1
+    assert template.layout0.area00.field3.size == 1
+    assert template.layout0.area00.field4.size == 1
+    assert template.layout0.area01.size == 8
+    assert template.layout1.size == 48
+    assert template.layout1.area10.size == 16
+    assert template.layout1.area11.size == 32
 
 
 def test_size_aggregation_using_same_offsets():
@@ -534,15 +534,15 @@ def test_size_aggregation_using_same_offsets():
             </layout>
         </template>"""
     ).parse()
-    assert template.size.value == 42
-    assert template.layout0.size.value == 42
-    assert template.layout0.area00.size.value == 4
-    assert template.layout0.area00.field1.size.value == 1
-    assert template.layout0.area00.field2.size.value == 1
-    assert template.layout0.area00.field3.size.value == 1
-    assert template.layout0.area00.field4.size.value == 1
-    assert template.layout0.area01.size.value == 8
-    assert template.layout0.area02.size.value == 32
+    assert template.size == 42
+    assert template.layout0.size == 42
+    assert template.layout0.area00.size == 4
+    assert template.layout0.area00.field1.size == 1
+    assert template.layout0.area00.field2.size == 1
+    assert template.layout0.area00.field3.size == 1
+    assert template.layout0.area00.field4.size == 1
+    assert template.layout0.area01.size == 8
+    assert template.layout0.area02.size == 32
 
 
 def test_size_with_resolvable_values():
@@ -560,7 +560,7 @@ def test_size_with_resolvable_values():
     template_provider = TemplateProvider(template)
     data_provider = DataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
     template.binding_context = BindingContext(template_provider, data_provider)
-    assert template.size.value == 8
+    assert template.size == 8
 
 
 def test_size_with_parent_override():
@@ -577,7 +577,7 @@ def test_size_with_parent_override():
     template_provider = TemplateProvider(template)
     data_provider = DataProvider(io.BytesIO(bytes([0x04, 0x00, 0x00, 0x00])))
     template.binding_context = BindingContext(template_provider, data_provider)
-    assert template.size.value == 16
+    assert template.size == 16
 
 
 def test_size_and_padding():
@@ -601,9 +601,9 @@ def test_size_and_padding():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.field4.offset.value == 4
-    assert template.layout0.area0.size.value == 7
-    assert template.layout0.area1.offset.value == 15
+    assert template.layout0.area0.field4.offset == 4
+    assert template.layout0.area0.size == 7
+    assert template.layout0.area1.offset == 15
 
 
 def test_size_without_children():
@@ -616,9 +616,9 @@ def test_size_without_children():
             </layout>
         </template>"""
     ).parse()
-    assert template.size.value == 0
-    assert template.layout0.size.value == 0
-    assert template.layout0.area0.size.value == 0
+    assert template.size == 0
+    assert template.layout0.size == 0
+    assert template.layout0.area0.size == 0
 
 
 def test_size_and_boundary_with_leaf_node():
@@ -633,10 +633,10 @@ def test_size_and_boundary_with_leaf_node():
         </template>"""
     ).parse()
     # Start on boundary
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x400
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x400
     # End on boundary
-    assert template.layout0.area0.size.value == 0x200
+    assert template.layout0.area0.size == 0x200
 
 
 def test_size_and_boundary_without_leaf_node():
@@ -650,10 +650,10 @@ def test_size_and_boundary_without_leaf_node():
         </template>"""
     ).parse()
     # Start on boundary
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x400
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x400
     # End on boundary
-    assert template.layout0.area0.size.value == 0x200
+    assert template.layout0.area0.size == 0x200
 
 
 def test_nested_boundary():
@@ -668,8 +668,8 @@ def test_nested_boundary():
             </layout>
         </template>"""
     ).parse()
-    assert template.layout0.area0.offset.value == 0x100
-    assert template.layout0.area0.absolute_address.value == 0x400
-    assert template.layout0.area0.size.value == 0x200
-    assert template.layout0.area0.field0.size.value == 0x100
-    assert template.layout0.area0.field0.offset.value == 0x0
+    assert template.layout0.area0.offset == 0x100
+    assert template.layout0.area0.absolute_address == 0x400
+    assert template.layout0.area0.size == 0x200
+    assert template.layout0.area0.field0.size == 0x100
+    assert template.layout0.area0.field0.offset == 0x0

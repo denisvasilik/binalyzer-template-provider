@@ -38,22 +38,28 @@ class XMLTemplateParser(XMLParserListener):
     DEFAULT_SIZING = Sizing.Auto
 
     ATTRIBUTES = {
-        "name": lambda self, attribute, template: self._parse_id_of(attribute),
-        "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode(
-            attribute
-        ),
-        "sizing": lambda self, attribute, template: self._parse_sizing(attribute),
-        "size": lambda self, attribute, template: self._parse_size(attribute, template),
-        "offset": lambda self, attribute, template: self._parse_attribute_value(
+        "name": lambda self, attribute, template: self._parse_name_attribute(
             attribute, template
         ),
-        "boundary": lambda self, attribute, template: self._parse_boundary(
+        "addressing-mode": lambda self, attribute, template: self._parse_addressing_mode_attribute(
             attribute, template
         ),
-        "padding-before": lambda self, attribute, template: self._parse_attribute_value(
+        "sizing": lambda self, attribute, template: self._parse_sizing_attribute(
             attribute, template
         ),
-        "padding-after": lambda self, attribute, template: self._parse_attribute_value(
+        "size": lambda self, attribute, template: self._parse_size_attribute(
+            attribute, template
+        ),
+        "offset": lambda self, attribute, template: self._parse_offset_attribute(
+            attribute, template
+        ),
+        "boundary": lambda self, attribute, template: self._parse_boundary_attribute(
+            attribute, template
+        ),
+        "padding-before": lambda self, attribute, template: self._parse_padding_before_attribute(
+            attribute, template
+        ),
+        "padding-after": lambda self, attribute, template: self._parse_padding_after_attribute(
             attribute, template
         ),
     }
@@ -76,54 +82,50 @@ class XMLTemplateParser(XMLParserListener):
         parent = None
         if self._elements:
             parent = self._elements[-1]
-        element = self._parse_attributes_of(Template(), parent, ctx)
+        element = self._parse_template_attributes(Template(), parent, ctx)
         self._elements.append(element)
         if parent:
             element.parent = parent
         else:
             self._root = element
-        _log.debug(
-            "Element: %s (addressing mode: %s)",
-            element.name,
-            element.addressing_mode.value,
-        )
 
     def exitElement(self, ctx):
         if self._elements:
             self._elements.pop()
 
-    def _parse_addressing_mode(self, attribute):
-        return AddressingMode(attribute.value().getText()[1:-1])
-
-    def _parse_size(self, attribute, template):
-        template.sizing = Sizing.Fix
-        return self._parse_attribute_value(attribute, template)
-
-    def _parse_boundary(self, attribute, template):
-        boundary_property = self._parse_attribute_value(attribute, template)
-
-        if not template.children:
-            template.size = ValueProperty(boundary_property.value)
-
-        return boundary_property
-
-    def _parse_sizing(self, attribute):
-        return Sizing(attribute.value().getText()[1:-1])
-
-    def _parse_id_of(self, attribute):
-        return attribute.value().getText()[1:-1]
-
-    def _parse_attributes_of(self, template, parent, ctx):
-        template.addressing_mode = self.DEFAULT_ADDRESSING_MODE
-        template.sizing = self.DEFAULT_SIZING
-        for attribute_name, attribute_factory in self.ATTRIBUTES.items():
+    def _parse_template_attributes(self, template, parent, ctx):
+        for attribute_name, attribute_func in self.ATTRIBUTES.items():
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    attribute = attribute_factory(self, attribute, template)
-                    attribute_setter_name = attribute_name.replace("-", "_")
-                    template.__dict__[attribute_setter_name] = attribute
+                    attribute_func(self, attribute, template)
         template.parent = parent
         return template
+
+    def _parse_name_attribute(self, attribute, template):
+        template.name = attribute.value().getText()[1:-1]
+
+    def _parse_size_attribute(self, attribute, template):
+        template.size_property = self._parse_attribute_value(attribute, template)
+
+    def _parse_boundary_attribute(self, attribute, template):
+        boundary_property = self._parse_attribute_value(attribute, template)
+
+        if not isinstance(template.size, ValueProperty) and not template.children:
+            template.size = ValueProperty(boundary_property.value)
+
+        template.boundary_property = boundary_property
+
+    def _parse_addressing_mode_attribute(self, attribute):
+        addressing_mode = AddressingMode(attribute.value().getText()[1:-1])
+
+    def _parse_sizing_attribute(self, attribute, template):
+        sizing = Sizing(attribute.value().getText()[1:-1])
+
+    def _parse_padding_before_attribute(self, attribute, template):
+        padding_before_property = self._parse_attribute_value(attribute, template)
+
+    def _parse_padding_after_attribute(self, attribute, template):
+        padding_after_property = self._parse_attribute_value(attribute, template)
 
     def _parse_attribute_value(self, attribute, template):
         attribute_name = attribute.Name().getText()
