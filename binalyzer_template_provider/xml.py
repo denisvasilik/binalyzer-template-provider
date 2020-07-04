@@ -12,11 +12,15 @@ import antlr4
 import logging
 
 from binalyzer_core import (
+    PropertyBase,
     ValueProperty,
     ReferenceProperty,
     AutoSizeValueProperty,
     StretchSizeProperty,
     RelativeOffsetValueProperty,
+    IntegerValueConverter,
+    LEB128UnsignedValueConverter,
+    BindingValueProvider,
     Template,
 )
 
@@ -56,6 +60,12 @@ class XMLTemplateParser(XMLParserListener):
         "boundary": lambda self, attribute, template, ctx: self._parse_boundary_attribute(
             attribute, template, ctx
         ),
+    }
+
+    CONVERTERS = {
+        "leb128u": LEB128UnsignedValueConverter(),
+        "little": IntegerValueConverter("little"),
+        "big": IntegerValueConverter("big"),
     }
 
     def __init__(self, xml_template):
@@ -164,12 +174,37 @@ class XMLTemplateParser(XMLParserListener):
 
         if attribute.binding() is not None:
             _log.debug("Parse attribute reference of %s", attribute_name)
+
+            reference = None
+            converter = IntegerValueConverter()
             names = attribute.binding().sequence().BRACKET_NAME()
-            reference_name = names[0].getText()  # mandatory
-            template.byte_order = "little"  # optional
-            if len(names) > 1 and names[1].getText() == "ByteOrder":
-                template.byte_order = names[2].getText()  # mandatory
-            return ReferenceProperty(template, reference_name)
+
+            if not "name" in names:
+                name = names[0].getText()
+                if not name == "byteorder" and not name == "converter":
+                    reference = name
+
+            for i, name in enumerate(names):
+                if name.getText() == "name":
+                    reference = names[i + 1].getText()
+                elif name.getText() == "byteorder":
+                    byteorder = names[i + 1].getText()
+                    converter = IntegerValueConverter(byteorder)
+                elif name.getText() == "converter":
+                    converter_name = names[i + 1].getText()
+                    converter = self.CONVERTERS[converter_name]
+
+            if reference:
+                return ReferenceProperty(template, reference, converter)
+            elif converter:
+                # Takes template.value as data source
+                return PropertyBase(
+                    template=template,
+                    value_provider=BindingValueProvider(template),
+                    value_converter=converter,
+                )
+            else:
+                raise RuntimeError("Invalid data binding.")
 
         return ValueProperty()
 

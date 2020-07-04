@@ -111,8 +111,8 @@ def test_field_cross_reference():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
+                    <field name="field1" size="{field1_size, byteorder=little}"></field>
+                    <field name="field2" size="{field1_size, byteorder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -135,8 +135,8 @@ def test_binding_at_object_instantiation():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
+                    <field name="field1" size="{field1_size, byteorder=little}"></field>
+                    <field name="field2" size="{field1_size, byteorder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -158,8 +158,8 @@ def test_binding_at_stream_assignment():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
+                    <field name="field1" size="{field1_size, byteorder=little}"></field>
+                    <field name="field2" size="{field1_size, byteorder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -188,8 +188,8 @@ def test_binding_at_template_assignment():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
+                    <field name="field1" size="{field1_size, byteorder=little}"></field>
+                    <field name="field2" size="{field1_size, byteorder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -541,7 +541,7 @@ def test_size_with_resolvable_values():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
+                    <field name="field1" size="{field1_size, byteorder=little}"></field>
                 </area>
             </layout>
         </template>"""
@@ -662,3 +662,46 @@ def test_nested_boundary():
     assert template.layout0.area0.size == 0x200
     assert template.layout0.area0.field0.size == 0x100
     assert template.layout0.area0.field0.offset == 0x0
+
+
+def test_template_reference_with_converter():
+    data = io.BytesIO(bytes([0xE5, 0x8E, 0x26]))
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                    <field name="field1_size" size="3"></field>
+                    <field name="field1" size="{field1_size, converter=leb128u}"></field>
+                </area>
+            </layout>
+        </template>"""
+    ).parse()
+    binalyzer = Binalyzer(template, data)
+    field1_size = find_by_attr(template, "field1_size")
+    field1 = find_by_attr(template, "field1")
+    assert field1_size.size == 3
+    assert field1_size.value == bytes([0xE5, 0x8E, 0x26])
+    assert field1.size == 624485
+
+
+def test_template_with_converter():
+    data = io.BytesIO(bytes([0x01, 0x02, 0x03, 0xE5, 0x8E, 0x26]))
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                    <field name="field1_size" size="3"></field>
+                    <field name="field1" size="{converter=leb128u}"></field>
+                </area>
+            </layout>
+        </template>"""
+    ).parse()
+    binalyzer = Binalyzer(template, data)
+    field1_size = find_by_attr(template, "field1_size")
+    field1 = find_by_attr(template, "field1")
+    assert field1_size.size == 3
+    assert field1_size.value == bytes([0x01, 0x02, 0x03])
+    assert field1.value == bytes([0xE5, 0x8E, 0x26])
+    assert field1.size == 624485
