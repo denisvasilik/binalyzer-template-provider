@@ -166,7 +166,7 @@ class XMLTemplateParser(XMLParserListener):
             _log.debug("Parse attribute reference of %s", attribute_name)
             names = attribute.binding().sequence().BRACKET_NAME()
             reference_name = names[0].getText()  # mandatory
-            template.byte_order = "LittleEndian"  # optional
+            template.byte_order = "little"  # optional
             if len(names) > 1 and names[1].getText() == "ByteOrder":
                 template.byte_order = names[2].getText()  # mandatory
             return ReferenceProperty(template, reference_name)

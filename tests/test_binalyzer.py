@@ -111,8 +111,8 @@ def test_field_cross_reference():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=LittleEndian}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=BigEndian}"></field>
+                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
+                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -135,8 +135,8 @@ def test_binding_at_object_instantiation():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=LittleEndian}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=BigEndian}"></field>
+                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
+                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -158,8 +158,8 @@ def test_binding_at_stream_assignment():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=LittleEndian}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=BigEndian}"></field>
+                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
+                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -188,8 +188,8 @@ def test_binding_at_template_assignment():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=LittleEndian}"></field>
-                    <field name="field2" size="{field1_size, ByteOrder=BigEndian}"></field>
+                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
+                    <field name="field2" size="{field1_size, ByteOrder=big}"></field>
                 </area>
             </layout>
         </template>"""
@@ -541,7 +541,7 @@ def test_size_with_resolvable_values():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, ByteOrder=LittleEndian}"></field>
+                    <field name="field1" size="{field1_size, ByteOrder=little}"></field>
                 </area>
             </layout>
         </template>"""
