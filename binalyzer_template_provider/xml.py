@@ -10,6 +10,7 @@
 """
 import antlr4
 import logging
+import copy
 
 from binalyzer_core import (
     PropertyBase,
@@ -18,9 +19,12 @@ from binalyzer_core import (
     AutoSizeValueProperty,
     StretchSizeProperty,
     RelativeOffsetValueProperty,
+    RelativeOffsetReferenceProperty,
     IntegerValueConverter,
+    IdentityValueConverter,
     LEB128UnsignedValueConverter,
     LEB128UnsignedBindingValueProvider,
+    LEB128SizeBindingValueProvider,
     Template,
 )
 
@@ -51,6 +55,9 @@ class XMLTemplateParser(XMLParserListener):
         "size": lambda self, attribute, template, ctx: self._parse_size_attribute(
             attribute, template, ctx
         ),
+        "count": lambda self, attribute, template, ctx: self._parse_count_attribute(
+            attribute, template, ctx
+        ),
         "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
             attribute, template, ctx
         ),
@@ -67,6 +74,10 @@ class XMLTemplateParser(XMLParserListener):
             "value_converter": LEB128UnsignedValueConverter,
             "value_provider": LEB128UnsignedBindingValueProvider,
         },
+        "leb128size": {
+            "value_converter": IdentityValueConverter,
+            "value_provider": LEB128SizeBindingValueProvider,
+        },
         "little": IntegerValueConverter("little"),
         "big": IntegerValueConverter("big"),
     }
@@ -80,9 +91,21 @@ class XMLTemplateParser(XMLParserListener):
         self._parse_tree_walker = antlr4.ParseTreeWalker()
         self._root = None
         self._elements = []
+        self._counted_elements = []
 
     def parse(self):
         self._parse_tree_walker.walk(self, self._parse_tree)
+        for item in self._counted_elements:
+            element = item["element"]
+            count = item["count"]
+            parent = element.parent
+            for i in range(count):
+                copied_element = copy.deepcopy(element)
+                copied_element.name = element.name + "-" + str(i + 1)
+                copied_element.parent = parent
+            element.name = element.name + "-0"
+            element._post_attach(element.parent)
+
         return self._root
 
     def enterElement(self, ctx):
@@ -112,6 +135,10 @@ class XMLTemplateParser(XMLParserListener):
 
     def _parse_name_attribute(self, attribute, template, ctx):
         template.name = attribute.value().getText()[1:-1]
+
+    def _parse_count_attribute(self, attribute, template, ctx):
+        count = int(attribute.value().getText()[1:-1])
+        self._counted_elements.append({"count": count, "element": template})
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
