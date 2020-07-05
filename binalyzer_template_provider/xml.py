@@ -20,7 +20,7 @@ from binalyzer_core import (
     RelativeOffsetValueProperty,
     IntegerValueConverter,
     LEB128UnsignedValueConverter,
-    BindingValueProvider,
+    LEB128UnsignedBindingValueProvider,
     Template,
 )
 
@@ -63,7 +63,10 @@ class XMLTemplateParser(XMLParserListener):
     }
 
     CONVERTERS = {
-        "leb128u": LEB128UnsignedValueConverter(),
+        "leb128u": {
+            "value_converter": LEB128UnsignedValueConverter,
+            "value_provider": LEB128UnsignedBindingValueProvider,
+        },
         "little": IntegerValueConverter("little"),
         "big": IntegerValueConverter("big"),
     }
@@ -176,7 +179,7 @@ class XMLTemplateParser(XMLParserListener):
             _log.debug("Parse attribute reference of %s", attribute_name)
 
             reference = None
-            converter = IntegerValueConverter()
+            value_converter = IntegerValueConverter()
             names = attribute.binding().sequence().BRACKET_NAME()
 
             if not "name" in names:
@@ -189,22 +192,24 @@ class XMLTemplateParser(XMLParserListener):
                     reference = names[i + 1].getText()
                 elif name.getText() == "byteorder":
                     byteorder = names[i + 1].getText()
-                    converter = IntegerValueConverter(byteorder)
+                    value_converter = IntegerValueConverter(byteorder)
                 elif name.getText() == "converter":
                     converter_name = names[i + 1].getText()
-                    converter = self.CONVERTERS[converter_name]
+                    value_converter = self.CONVERTERS[converter_name][
+                        "value_converter"
+                    ]()
+                    value_provider = self.CONVERTERS[converter_name]["value_provider"](
+                        template
+                    )
 
             if reference:
-                return ReferenceProperty(template, reference, converter)
-            elif converter:
-                # Takes template.value as data source
+                return ReferenceProperty(template, reference, value_converter)
+            else:
                 return PropertyBase(
                     template=template,
-                    value_provider=BindingValueProvider(template),
-                    value_converter=converter,
+                    value_provider=value_provider,
+                    value_converter=value_converter,
                 )
-            else:
-                raise RuntimeError("Invalid data binding.")
 
         return ValueProperty()
 
