@@ -95,17 +95,6 @@ class XMLTemplateParser(XMLParserListener):
 
     def parse(self):
         self._parse_tree_walker.walk(self, self._parse_tree)
-        for item in self._counted_elements:
-            element = item["element"]
-            count = item["count"]
-            parent = element.parent
-            for i in range(count):
-                copied_element = copy.deepcopy(element)
-                copied_element.name = element.name + "-" + str(i + 1)
-                copied_element.parent = parent
-            element.name = element.name + "-0"
-            element._post_attach(element.parent)
-
         return self._root
 
     def enterElement(self, ctx):
@@ -137,8 +126,8 @@ class XMLTemplateParser(XMLParserListener):
         template.name = attribute.value().getText()[1:-1]
 
     def _parse_count_attribute(self, attribute, template, ctx):
-        count = int(attribute.value().getText()[1:-1])
-        self._counted_elements.append({"count": count, "element": template})
+        count_property = self._parse_attribute_value(attribute, template)
+        template.count_property = count_property
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
