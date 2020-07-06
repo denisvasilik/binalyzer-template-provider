@@ -104,6 +104,8 @@ class XMLTemplateParser(XMLParserListener):
         self._root = None
         self._elements = []
         self._data = data
+        self._signature_property = None
+        self._hint_property = None
 
     def parse(self):
         self._parse_tree_walker.walk(self, self._parse_tree)
@@ -119,7 +121,29 @@ class XMLTemplateParser(XMLParserListener):
             template.binding_context = BindingContext(
                 TemplateProvider(template), DataProvider(self._data)
             )
+        self._signature_property = None
+        self._hint_property = None
         element = self._parse_template_attributes(template, parent, ctx)
+
+        if self._hint_property:
+            if self._signature_property is None:
+                raise RuntimeError("Optional templates need a signature.")
+            size = len(self._signature_property)
+            element.binding_context.data_provider.data.seek(element.absolute_address)
+            byte_val = element.binding_context.data_provider.data.read(size)
+            if self._signature_property != byte_val:
+                element.parent = None
+        else:
+            if self._signature_property:
+                size = len(self._signature_property)
+                element.binding_context.data_provider.data.seek(
+                    element.absolute_address
+                )
+                byte_val = element.binding_context.data_provider.data.read(size)
+                if self._signature_property != byte_val:
+                    raise RuntimeError(
+                        'Signature validation failed for "' + element.name + '".'
+                    )
         if not parent:
             self._root = template
         else:
@@ -150,10 +174,10 @@ class XMLTemplateParser(XMLParserListener):
         template.count_property = count_property
 
     def _parse_signature_attribute(self, attribute, template, ctx):
-        pass
+        self._signature_property = self._parse_attribute_value(attribute, template)
 
     def _parse_hint_attribute(self, attribute, template, ctx):
-        pass
+        self._hint_property = self._parse_attribute_value(attribute, template)
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
@@ -211,6 +235,13 @@ class XMLTemplateParser(XMLParserListener):
 
     def _parse_attribute_value(self, attribute, template):
         attribute_name = attribute.Name().getText()
+
+        if attribute_name == "hint":
+            return ValueProperty()
+
+        if attribute_name == "signature":
+            hex_str = attribute.value().getText()[3:-1]
+            return bytes.fromhex(hex_str)
 
         if attribute.value() is not None:
             _log.debug("Parse value of attribute %s", attribute_name)
