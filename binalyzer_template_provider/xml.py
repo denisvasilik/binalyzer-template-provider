@@ -11,6 +11,9 @@
 import antlr4
 import logging
 import copy
+import io
+
+from typing import Optional
 
 from binalyzer_core import (
     PropertyBase,
@@ -26,6 +29,9 @@ from binalyzer_core import (
     LEB128UnsignedBindingValueProvider,
     LEB128SizeBindingValueProvider,
     Template,
+    TemplateProvider,
+    DataProvider,
+    BindingContext,
 )
 
 from .generated import XMLParserListener, XMLLexer, XMLParser
@@ -58,6 +64,12 @@ class XMLTemplateParser(XMLParserListener):
         "count": lambda self, attribute, template, ctx: self._parse_count_attribute(
             attribute, template, ctx
         ),
+        "signature": lambda self, attribute, template, ctx: self._parse_signature_attribute(
+            attribute, template, ctx
+        ),
+        "hint": lambda self, attribute, template, ctx: self._parse_hint_attribute(
+            attribute, template, ctx
+        ),
         "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
             attribute, template, ctx
         ),
@@ -82,7 +94,7 @@ class XMLTemplateParser(XMLParserListener):
         "big": IntegerValueConverter("big"),
     }
 
-    def __init__(self, xml_template):
+    def __init__(self, xml_template, data: Optional[io.IOBase] = None):
         self._input_stream = antlr4.InputStream(xml_template.strip())
         self._lexer = XMLLexer(self._input_stream)
         self._common_token_stream = antlr4.CommonTokenStream(self._lexer)
@@ -91,7 +103,7 @@ class XMLTemplateParser(XMLParserListener):
         self._parse_tree_walker = antlr4.ParseTreeWalker()
         self._root = None
         self._elements = []
-        self._counted_elements = []
+        self._data = data
 
     def parse(self):
         self._parse_tree_walker.walk(self, self._parse_tree)
@@ -101,12 +113,19 @@ class XMLTemplateParser(XMLParserListener):
         parent = None
         if self._elements:
             parent = self._elements[-1]
-        element = self._parse_template_attributes(Template(), parent, ctx)
-        self._elements.append(element)
-        if parent:
-            element.parent = parent
+
+        template = Template(parent=parent)
+        if self._data:  # for data dependant templates
+            template.binding_context = BindingContext(
+                TemplateProvider(template), DataProvider(self._data)
+            )
+        element = self._parse_template_attributes(template, parent, ctx)
+        if not parent:
+            self._root = template
         else:
-            self._root = element
+            element._add_name_to_parent(parent)
+            parent._propagate_binding_context()
+        self._elements.append(element)
 
     def exitElement(self, ctx):
         if self._elements:
@@ -127,7 +146,14 @@ class XMLTemplateParser(XMLParserListener):
 
     def _parse_count_attribute(self, attribute, template, ctx):
         count_property = self._parse_attribute_value(attribute, template)
+        value = count_property.value
         template.count_property = count_property
+
+    def _parse_signature_attribute(self, attribute, template, ctx):
+        pass
+
+    def _parse_hint_attribute(self, attribute, template, ctx):
+        pass
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
