@@ -29,9 +29,9 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
             with open(data_file_path, "rb") as data_file:
                 data = io.BytesIO(data_file.read())
 
-        self.parse(template_text, data)
+        return self.from_str(template_text, data)
 
-    def parse(self, text: str, data: Optional[io.IOBase] = None):
+    def from_str(self, text: str, data: Optional[io.IOBase] = None):
         template = XMLTemplateParser(text, data).parse()
         if data:
             self.binalyzer.data = data
