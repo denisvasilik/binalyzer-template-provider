@@ -705,3 +705,21 @@ def test_template_with_converter():
     assert field1_size.value == bytes([0x01, 0x02, 0x03])
     assert field1.value == bytes([0xE5, 0x8E, 0x26])
     assert field1.size == 624485
+
+
+def test_stretch_with_auto_sizing_parent():
+    template = XMLTemplateParser(
+        """
+        <template sizing="auto">
+            <header size="4">
+            </header>
+            <payload name="payload" sizing="stretch">
+            </payload>
+        </template>
+    """
+    ).parse()
+    binalyzer = Binalyzer(template)
+    binalyzer.data = io.BytesIO(bytes([0x01] * 8))
+    binalyzer.template.payload.value = bytes([0x02] * 4)
+    print(binalyzer.template.size)
+    print(binalyzer.template.value)
