@@ -707,10 +707,28 @@ def test_template_with_converter():
     assert field1.size == 624485
 
 
-def test_stretch_with_auto_sizing_parent():
+def test_fix_stretch_with_auto_sizing_parent():
     template = XMLTemplateParser(
         """
         <template sizing="auto">
+            <header size="4">
+            </header>
+            <payload name="payload" sizing="stretch">
+            </payload>
+        </template>
+    """
+    ).parse()
+    binalyzer = Binalyzer(template)
+    binalyzer.data = io.BytesIO(bytes([0x01] * 8))
+    binalyzer.template.payload.value = bytes([0x02] * 4)
+    print(binalyzer.template.size)
+    print(binalyzer.template.value)
+
+
+def test_fix_boundary_and_none_offset():
+    template = XMLTemplateParser(
+        """
+        <template boundary="0x100">
             <header size="4">
             </header>
             <payload name="payload" sizing="stretch">
