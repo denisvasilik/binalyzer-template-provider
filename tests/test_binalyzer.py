@@ -707,7 +707,7 @@ def test_template_with_converter():
     assert field1.size == 624485
 
 
-def test_fix_stretch_with_auto_sizing_parent():
+def test_stretch_with_auto_sizing_parent():
     template = XMLTemplateParser(
         """
         <template sizing="auto">
@@ -720,16 +720,16 @@ def test_fix_stretch_with_auto_sizing_parent():
     ).parse()
     binalyzer = Binalyzer(template)
     binalyzer.data = io.BytesIO(bytes([0x01] * 8))
-    binalyzer.template.payload.value = bytes([0x02] * 4)
+    binalyzer.template.payload.value = bytes([0x02] * binalyzer.template.payload.size)
     print(binalyzer.template.size)
     print(binalyzer.template.value)
 
 
-def test_fix_boundary_and_none_offset():
+def test_root_template_no_offset_and_boundary():
     template = XMLTemplateParser(
         """
         <template boundary="0x100">
-            <header size="4">
+            <header name="header" size="4">
             </header>
             <payload name="payload" sizing="stretch">
             </payload>
@@ -737,7 +737,32 @@ def test_fix_boundary_and_none_offset():
     """
     ).parse()
     binalyzer = Binalyzer(template)
-    binalyzer.data = io.BytesIO(bytes([0x01] * 8))
-    binalyzer.template.payload.value = bytes([0x02] * 4)
-    print(binalyzer.template.size)
-    print(binalyzer.template.value)
+    binalyzer.data = io.BytesIO(bytes([0x01] * binalyzer.template.size))
+    binalyzer.template.header.value = bytes([0x02] * 4)
+    assert binalyzer.template.payload.size == 252
+    assert binalyzer.template.size == 256
+    assert binalyzer.template.header.size == 4
+    assert binalyzer.template.header.value == bytes([0x02] * 4)
+    assert binalyzer.template.payload.value == bytes([0x01] * 252)
+
+
+def test_root_template_offset_and_boundary():
+    template = XMLTemplateParser(
+        """
+        <template offset="0x20" boundary="0x100">
+            <header name="header" size="4">
+            </header>
+            <payload name="payload" sizing="stretch">
+            </payload>
+        </template>
+    """
+    ).parse()
+    binalyzer = Binalyzer(template)
+    binalyzer.data = io.BytesIO(bytes([0x01] * binalyzer.template.size))
+    binalyzer.template.header.value = bytes([0x02] * 4)
+    assert binalyzer.template.offset == 32
+    assert binalyzer.template.size == 256
+    assert binalyzer.template.header.size == 4
+    assert binalyzer.template.header.value == bytes([0x02] * 4)
+    assert binalyzer.template.payload.size == 252
+    assert binalyzer.template.payload.value == bytes([0x01] * 220)
