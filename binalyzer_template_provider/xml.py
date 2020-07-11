@@ -141,9 +141,12 @@ class XMLTemplateParser(XMLParserListener):
                 )
                 byte_val = element.binding_context.data_provider.data.read(size)
                 if self._signature_property != byte_val:
-                    raise RuntimeError(
-                        'Signature validation failed for "' + element.name + '".'
-                    )
+                    if element.name is None:
+                        raise RuntimeError("Signature validation failed.")
+                    else:
+                        raise RuntimeError(
+                            'Signature validation failed for "' + element.name + '".'
+                        )
         if not parent:
             self._root = template
         else:
