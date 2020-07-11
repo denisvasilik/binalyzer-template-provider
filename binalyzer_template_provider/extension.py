@@ -5,6 +5,7 @@
     This module implements the Binalyzer Template Provider extension.
 """
 import io
+import requests
 
 from typing import Optional
 from binalyzer_core import BinalyzerExtension
@@ -33,6 +34,13 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
 
     def from_str(self, text: str, data: Optional[io.IOBase] = None):
         template = XMLTemplateParser(text, data).parse()
+        if data:
+            self.binalyzer.data = data
+        self.binalyzer.template = template
+        return template
+
+    def from_url(self, url):
+        template = XMLTemplateParser(requests.get(url).text).parse()
         if data:
             self.binalyzer.data = data
         self.binalyzer.template = template
