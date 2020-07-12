@@ -119,7 +119,7 @@ class XMLTemplateParser(XMLParserListener):
         template = Template(parent=parent)
         if self._data:  # for data dependant templates
             template.binding_context = BindingContext(
-                TemplateProvider(template), DataProvider(self._data)
+                TemplateProvider(template), DataProvider(io.BytesIO(self._data))
             )
         self._signature_property = None
         self._hint_property = None
