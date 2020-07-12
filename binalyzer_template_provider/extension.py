@@ -39,8 +39,9 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
         self.binalyzer.template = template
         return template
 
-    def from_url(self, url):
-        template = XMLTemplateParser(requests.get(url).text).parse()
+    def from_url(self, url, data: Optional[io.IOBase] = None, **kwargs):
+        response = requests.get(url, **kwargs)
+        template = XMLTemplateParser(response.text, data.read()).parse()
         if data:
             self.binalyzer.data = data
         self.binalyzer.template = template
