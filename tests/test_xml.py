@@ -149,107 +149,109 @@ def test_padding_after_attribute():
     assert template.padding_after == 0x400
 
 
-class FieldElementTestCase(unittest.TestCase):
-    def test_field_padding_before(self):
-        template = XMLTemplateParser(
-            """
-            <template name="template0">
-                <layout name="layout0">
-                    <area name="area0">
-                        <field name="field0" padding-before="0x100">
-                        </field>
-                    </area>
-                </layout>
-            </template>
+def test_field_padding_before():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        field0 = template.layout0.area0.field0
-        self.assertEqual(field0.padding_before, 0x100)
-        self.assertEqual(field0.padding_after, 0)
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                    <field name="field0" padding-before="0x100">
+                    </field>
+                </area>
+            </layout>
+        </template>
+    """
+    ).parse()
+    field0 = template.layout0.area0.field0
+    assert field0.padding_before == 0x100
+    assert field0.padding_after == 0
 
-    def test_field_padding_after(self):
-        template = XMLTemplateParser(
-            """
-            <template name="template0">
-                <layout name="layout0">
-                    <area name="area0">
-                        <field name="field0" padding-after="0x100">
-                        </field>
-                    </area>
-                </layout>
-            </template>
+
+def test_field_padding_after():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        field0 = template.layout0.area0.field0
-        self.assertEqual(field0.padding_before, 0)
-        self.assertEqual(field0.padding_after, 0x100)
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                    <field name="field0" padding-after="0x100">
+                    </field>
+                </area>
+            </layout>
+        </template>
+    """
+    ).parse()
+    field0 = template.layout0.area0.field0
+    assert field0.padding_before == 0
+    assert field0.padding_after == 0x100
 
 
-class TemplateParserTestCase(unittest.TestCase):
-    def test_parse_template(self):
-        template = XMLTemplateParser(
-            """
-            <template>
-            </template>
+def test_parse_template():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        self.assertTrue(isinstance(template, Template))
+        <template>
+        </template>
+    """
+    ).parse()
+    assert isinstance(template, Template)
 
-    def test_parse_layout(self):
-        template = XMLTemplateParser(
-            """
-            <template>
-                <layout name="layout0">
-                </layout>
-            </template>
+
+def test_parse_layout():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        self.assertTrue(isinstance(template.layout0, Template))
-        self.assertEqual(id(template.layout0), id(template.children[0]))
-        self.assertEqual(template.layout0.parent, template)
-        self.assertEqual(template.layout0.name, "layout0")
+        <template>
+            <layout name="layout0">
+            </layout>
+        </template>
+    """
+    ).parse()
+    assert isinstance(template.layout0, Template)
+    assert id(template.layout0) == id(template.children[0])
+    assert template.layout0.parent == template
+    assert template.layout0.name == "layout0"
 
-    def test_parse_area(self):
-        template = XMLTemplateParser(
-            """
-            <template name="template0">
-                <layout name="layout0">
-                    <area name="area0">
-                    </area>
-                </layout>
-            </template>
+
+def test_parse_area():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        self.assertTrue(isinstance(template.layout0.area0, Template))
-        self.assertEqual(
-            id(template.layout0.area0), id(template.children[0].children[0])
-        )
-        self.assertEqual(template.layout0.area0.parent, template.layout0)
-        self.assertEqual(template.layout0.area0.name, "area0")
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                </area>
+            </layout>
+        </template>
+    """
+    ).parse()
+    assert isinstance(template.layout0.area0, Template)
+    assert id(template.layout0.area0) == id(template.children[0].children[0])
+    assert template.layout0.area0.parent == template.layout0
+    assert template.layout0.area0.name == "area0"
 
-    def test_parse_field(self):
-        template = XMLTemplateParser(
-            """
-            <template name="template0">
-                <layout name="layout0">
-                    <area name="area0">
-                        <field name="field0" size="4"></field>
-                        <field name="field1" size="4"></field>
-                        <field name="field2" size="4"></field>
-                        <field name="field3" size="4"></field>
-                    </area>
-                </layout>
-            </template>
+
+def test_parse_field():
+    template = XMLTemplateParser(
         """
-        ).parse()
-        field0 = template.layout0.area0.field0
-        self.assertTrue(isinstance(field0, Template))
-        self.assertEqual(id(field0), id(template.children[0].children[0].children[0]))
-        self.assertEqual(field0.parent, template.layout0.area0)
-        self.assertEqual(field0.name, "field0")
+        <template name="template0">
+            <layout name="layout0">
+                <area name="area0">
+                    <field name="field0" size="4"></field>
+                    <field name="field1" size="4"></field>
+                    <field name="field2" size="4"></field>
+                    <field name="field3" size="4"></field>
+                </area>
+            </layout>
+        </template>
+    """
+    ).parse()
+    field0 = template.layout0.area0.field0
+    assert isinstance(field0, Template)
+    assert id(field0) == id(template.children[0].children[0].children[0])
+    assert field0.parent == template.layout0.area0
+    assert field0.name == "field0"
 
-    def test_parse_repetition(self):
-        pass
 
-    def test_parse_nested_area(self):
-        pass
+def test_parse_repetition():
+    pass
+
+
+def test_parse_nested_area():
+    pass
