@@ -32,16 +32,13 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
 
         return self.from_str(template_text, data)
 
-    def from_str(self, text: str, data: Optional[io.IOBase] = None):
-        template = XMLTemplateParser(text, data).parse()
-        if data:
-            self.binalyzer.data = data
-        self.binalyzer.template = template
-        return template
-
     def from_url(self, url, data: Optional[io.IOBase] = None, **kwargs):
         response = requests.get(url, **kwargs)
-        template = XMLTemplateParser(response.text, data.read()).parse()
+
+        return self.from_str(response.text, data)
+
+    def from_str(self, text: str, data: Optional[io.IOBase] = None):
+        template = XMLTemplateParser(text, data.read()).parse()
         if data:
             self.binalyzer.data = data
         self.binalyzer.template = template
