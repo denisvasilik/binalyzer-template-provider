@@ -5,8 +5,10 @@
     This module implements higher level tests for scenarios such as data
     dissection, analysis and generation.
 """
-import unittest
 import io
+import os
+import unittest
+
 
 from anytree import find_by_attr
 
@@ -17,7 +19,7 @@ from binalyzer_core import (
     DataProvider,
     TemplateProvider,
 )
-from binalyzer_template_provider import XMLTemplateParser
+from binalyzer_template_provider import XMLTemplateParser, XMLTemplateProviderExtension
 
 
 TEST_DATA_STREAM_128 = io.BytesIO(
@@ -55,3 +57,20 @@ def test_data_generation():
 
     assert binalyzer.template.size == 128
     assertStreamEqual(binalyzer.data, TEST_DATA_STREAM_128)
+
+
+def test_data_analysis():
+    cwd_path = os.path.dirname(os.path.abspath(__file__))
+
+    binalyzer = Binalyzer()
+    XMLTemplateProviderExtension(binalyzer)
+    binalyzer.xml.from_file(
+        os.path.join(cwd_path, "resources/wasm_module.xml"),
+        os.path.join(cwd_path, "resources/wasm_module.wasm"),
+    )
+
+    instructions = binalyzer.template.code_section.code.function.instructions
+
+    assert binalyzer.template.magic.value == bytes([0x00, 0x61, 0x73, 0x6D])
+    assert binalyzer.template.version.value == bytes([0x01, 0x00, 0x00, 0x00])
+    assert instructions.value == bytes([0x01, 0x0B])
