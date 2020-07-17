@@ -1,3 +1,10 @@
+"""
+    test_sizing
+    ~~~~~~~~~~~
+
+    This module implements tests related to a template's sizing.
+"""
+
 import pytest
 import io
 
@@ -243,3 +250,21 @@ def test_sizing_stretch_to_sibling():
     binalyzer = Binalyzer(template)
 
     assert binalyzer.template.root.area1.size == 60
+
+
+def test_stretch_with_auto_sizing_parent():
+    template = XMLTemplateParser(
+        """
+        <template sizing="auto">
+            <header size="4">
+            </header>
+            <payload name="payload" sizing="stretch">
+            </payload>
+        </template>
+    """
+    ).parse()
+    binalyzer = Binalyzer(template)
+    binalyzer.data = io.BytesIO(bytes([0x01] * 8))
+    binalyzer.template.payload.value = bytes([0x02] * binalyzer.template.payload.size)
+    print(binalyzer.template.size)
+    print(binalyzer.template.value)
