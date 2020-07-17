@@ -19,15 +19,15 @@ def test_field_cross_reference():
         <template name="template0">
             <layout name="layout0">
                 <area name="area0">
-                    <field name="field1_size" size="4"></field>
-                    <field name="field1" size="{field1_size, byteorder=little}"></field>
-                    <field name="field2" size="{field1_size, byteorder=big}"></field>
+                    <field name="field1-size" size="4"></field>
+                    <field name="field1" size="{field1-size, byteorder=little}"></field>
+                    <field name="field2" size="{field1-size, byteorder=big}"></field>
                 </area>
             </layout>
         </template>"""
     ).parse()
     binalyzer = Binalyzer(template, data)
-    field1_size = find_by_attr(template, "field1_size")
+    field1_size = find_by_attr(template, "field1-size")
     field1 = find_by_attr(template, "field1")
     field2 = find_by_attr(template, "field2")
     assert field1_size.size == 4
