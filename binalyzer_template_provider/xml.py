@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    binalyzer_template_provider.xml
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    binalyzer_template_provider
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Template providers are used to create a template tree from a description.
 
