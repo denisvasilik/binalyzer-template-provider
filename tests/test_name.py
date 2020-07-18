@@ -10,6 +10,17 @@ from binalyzer_core import Template
 from binalyzer_template_provider import XMLTemplateParser
 
 
+def test_name_attribute_optional():
+    template = XMLTemplateParser(
+        """
+        <template>
+        </template>
+    """
+    ).parse()
+    assert isinstance(template, Template)
+    assert template.name is None
+
+
 def test_name_attribute():
     template = XMLTemplateParser(
         """
