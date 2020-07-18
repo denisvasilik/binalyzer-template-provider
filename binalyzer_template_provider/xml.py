@@ -169,6 +169,10 @@ class XMLTemplateParser(XMLParserListener):
         return template
 
     def _parse_name_attribute(self, attribute, template, ctx):
+        if attribute.binding() is not None:
+            raise RuntimeError(
+                "Using a reference for the name attribute is not allowed."
+            )
         template.name = attribute.value().getText()[1:-1]
 
     def _parse_count_attribute(self, attribute, template, ctx):
