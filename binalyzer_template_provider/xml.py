@@ -94,7 +94,7 @@ class XMLTemplateParser(XMLParserListener):
         "big": IntegerValueConverter("big"),
     }
 
-    def __init__(self, template: str, data: Optional[io.IOBase] = None):
+    def __init__(self, template: str, data: Optional[bytes] = None):
         self._input_stream = antlr4.InputStream(template.strip())
         self._lexer = XMLLexer(self._input_stream)
         self._common_token_stream = antlr4.CommonTokenStream(self._lexer)

@@ -33,8 +33,8 @@ def test_template_mapping_nested_1st_depth():
     template = XMLTemplateParser(
         """
         <template>
-            <section>
-            </section>
+            <template>
+            </template>
         </template>
     """
     ).parse()
@@ -55,9 +55,9 @@ def test_template_mapping_nested_2nd_depth():
     template = XMLTemplateParser(
         """
         <template>
-            <layout>
-                <area></area>
-            </layout>
+            <template>
+                <template></template>
+            </template>
         </template>
     """
     ).parse()

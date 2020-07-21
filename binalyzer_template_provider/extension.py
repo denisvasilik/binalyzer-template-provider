@@ -25,22 +25,23 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
         with open(template_file_path, "r") as template_file:
             template_text = template_file.read()
 
-        data = io.BytesIO()
+        data = bytes()
         if data_file_path:
             with open(data_file_path, "rb") as data_file:
-                data = io.BytesIO(data_file.read())
+                data = data_file.read()
 
         return self.from_str(template_text, data)
 
-    def from_url(self, url, data: Optional[io.IOBase] = None, **kwargs):
-        response = requests.get(url, **kwargs)
+    def from_url(self, template_url: str, data_url: str, **kwargs):
+        template_response = requests.get(template_url, **kwargs)
+        data_response = requests.get(data_url, **kwargs)
 
-        return self.from_str(response.text, data)
+        return self.from_str(template_response.text, data_response.content)
 
-    def from_str(self, text: str, data: Optional[io.IOBase] = None):
+    def from_str(self, text: str, data: Optional[bytes] = None):
         if data:
-            template = XMLTemplateParser(text, data.read()).parse()
-            self.binalyzer.data = data
+            template = XMLTemplateParser(text, data).parse()
+            self.binalyzer.data = io.BytesIO(data)
         else:
             template = XMLTemplateParser(text).parse()
         self.binalyzer.template = template
