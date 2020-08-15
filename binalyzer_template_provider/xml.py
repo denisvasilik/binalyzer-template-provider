@@ -121,10 +121,13 @@ class XMLTemplateParser(XMLParserListener):
             template.binding_context = BindingContext(
                 TemplateProvider(template), DataProvider(io.BytesIO(self._data))
             )
+
         self._signature_property = None
         self._hint_property = None
+
         element = self._parse_template_attributes(template, parent, ctx)
 
+        # element has a hint attribute
         if self._hint_property:
             if self._signature_property is None:
                 raise RuntimeError("Optional templates need a signature.")
@@ -133,22 +136,26 @@ class XMLTemplateParser(XMLParserListener):
             byte_val = element.binding_context.data_provider.data.read(size)
             if self._signature_property != byte_val:
                 element.parent = None
-        else:
-            if self._signature_property:
-                size = len(self._signature_property)
-                element.binding_context.data_provider.data.seek(
-                    element.absolute_address
-                )
-                byte_val = element.binding_context.data_provider.data.read(size)
-                if self._signature_property != byte_val:
-                    if element.name is None:
-                        raise RuntimeError("Signature validation failed.")
-                    else:
-                        raise RuntimeError(
-                            'Signature validation failed for "' + element.name + '".'
-                        )
+        # element has a signature attribute
+        elif self._signature_property:
+            size = len(self._signature_property)
+            element.binding_context.data_provider.data.seek(element.absolute_address)
+            byte_val = element.binding_context.data_provider.data.read(size)
+            if self._signature_property != byte_val:
+                if element.name is None:
+                    raise RuntimeError("Signature validation failed.")
+                else:
+                    raise RuntimeError(
+                        'Signature validation failed for "' + element.name + '".'
+                    )
+
         if not parent:
             self._root = template
+        elif parent and parent.count > 1:
+            # Remove template from tree as it will be used as a prototype for
+            # duplication at data binding time.
+            template.parent = None
+            parent.prototypes.append(template)
         else:
             element._add_name_to_parent(parent)
             parent._propagate_binding_context()
