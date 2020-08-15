@@ -158,4 +158,4 @@ def test_template_with_converter():
     assert field1_size.size == 3
     assert field1_size.value == bytes([0x01, 0x02, 0x03])
     assert field1.value == bytes([0xE5, 0x8E, 0x26])
-    assert field1.size == 624485
+    assert field1.size == 1656614
