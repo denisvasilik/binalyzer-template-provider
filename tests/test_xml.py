@@ -13,6 +13,8 @@ from binalyzer_core import (
     ReferenceProperty,
     RelativeOffsetReferenceProperty,
     RelativeOffsetValueProperty,
+    AutoSizeValueProperty,
+    StretchSizeProperty,
 )
 
 from binalyzer_template_provider import XMLTemplateParser
@@ -64,11 +66,19 @@ def test_count_attribute_reference():
 
 
 def test_signature_attribute_value():
-    pass
+    template_description = """
+        <template signature="0x11223344"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert template.signature == bytes([0x11, 0x22, 0x33, 0x44])
 
 
-def test_hint_attribute_value():
-    pass
+def test_hint_attribute_optional():
+    template_description = """
+        <template hint="optional"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert template.hint == "optional"
 
 
 def test_offset_attribute_value():
@@ -89,8 +99,36 @@ def test_offset_attribute_reference():
     assert isinstance(template.offset_property, RelativeOffsetReferenceProperty)
 
 
-def test_addressing_mode_attribute_value():
-    pass
+def test_addressing_mode_default():
+    template_description = """
+        <template></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+
+
+def test_addressing_mode_absolute():
+    template_description = """
+        <template adressing-mode="absolute"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+
+
+def test_addressing_mode_relative_value():
+    template_description = """
+        <template adressing-mode="relative"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+
+
+def test_addressing_mode_relative_value():
+    template_description = """
+        <template offset="{nowhere}" adressing-mode="relative"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.offset_property, RelativeOffsetReferenceProperty)
 
 
 def test_size_attribute_value():
@@ -111,8 +149,36 @@ def test_size_attribute_reference():
     assert isinstance(template.size_property, ReferenceProperty)
 
 
-def test_sizing_attribute_value():
-    pass
+def test_sizing_attribute_default():
+    template_description = """
+        <template></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.size_property, AutoSizeValueProperty)
+
+
+def test_sizing_attribute_fix():
+    template_description = """
+        <template sizing="fix"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.size_property, ValueProperty)
+
+
+def test_sizing_attribute_auto():
+    template_description = """
+        <template sizing="auto"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.size_property, AutoSizeValueProperty)
+
+
+def test_sizing_attribute_stretch():
+    template_description = """
+        <template sizing="stretch"></template>
+    """
+    template = XMLTemplateParser(template_description).parse()
+    assert isinstance(template.size_property, StretchSizeProperty)
 
 
 def test_boundary_attribute_value():

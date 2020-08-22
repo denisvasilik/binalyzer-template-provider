@@ -37,48 +37,21 @@ from binalyzer_core import (
 from .generated import XMLParserListener, XMLLexer, XMLParser
 
 
-_log = logging.getLogger("binalyzer")
-_log.setLevel(logging.DEBUG)
-
-
-def create_input_stream(filepath):
-    with open(filepath, "r") as template_file:
-        return antlr4.InputStream(template_file.read())
-
-
 class XMLTemplateParser(XMLParserListener):
 
     DEFAULT_ADDRESSING_MODE = "relative"
     DEFAULT_SIZING = "auto"
 
     ATTRIBUTES = {
-        "name": lambda self, attribute, template, ctx: self._parse_name_attribute(
-            attribute, template, ctx
-        ),
-        "offset": lambda self, attribute, template, ctx: self._parse_offset_attribute(
-            attribute, template, ctx
-        ),
-        "size": lambda self, attribute, template, ctx: self._parse_size_attribute(
-            attribute, template, ctx
-        ),
-        "count": lambda self, attribute, template, ctx: self._parse_count_attribute(
-            attribute, template, ctx
-        ),
-        "signature": lambda self, attribute, template, ctx: self._parse_signature_attribute(
-            attribute, template, ctx
-        ),
-        "hint": lambda self, attribute, template, ctx: self._parse_hint_attribute(
-            attribute, template, ctx
-        ),
-        "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
-            attribute, template, ctx
-        ),
-        "padding-after": lambda self, attribute, template, ctx: self._parse_padding_after_attribute(
-            attribute, template, ctx
-        ),
-        "boundary": lambda self, attribute, template, ctx: self._parse_boundary_attribute(
-            attribute, template, ctx
-        ),
+        "name",
+        "offset",
+        "size",
+        "count",
+        "signature",
+        "hint",
+        "padding-before",
+        "padding-after",
+        "boundary",
     }
 
     CONVERTERS = {
@@ -132,10 +105,11 @@ class XMLTemplateParser(XMLParserListener):
     def _parse_attributes(self, template, parent, ctx):
         self._parse_sizing_attribute(template, ctx)
 
-        for attribute_name, attribute_func in self.ATTRIBUTES.items():
+        for attribute_name in self.ATTRIBUTES:
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    attribute_func(self, attribute, template, ctx)
+                    fn_name = "_parse_" + attribute_name + "_attribute"
+                    self.__class__.__dict__[fn_name](self, attribute, template, ctx)
 
         template.parent = parent
         return template
@@ -149,12 +123,12 @@ class XMLTemplateParser(XMLParserListener):
         template.count_property = self._parse_attribute_value(attribute, template)
 
     def _parse_signature_attribute(self, attribute, template, ctx):
-        self._signature_property = self._parse_signature_attribute_value(
+        template.signature_property = self._parse_signature_attribute_value(
             attribute, template
         )
 
     def _parse_hint_attribute(self, attribute, template, ctx):
-        self._hint_property = self._parse_hint_attribute_value(attribute, template)
+        template.hint_property = self._parse_hint_attribute_value(attribute, template)
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
@@ -214,7 +188,7 @@ class XMLTemplateParser(XMLParserListener):
         )
 
     def _parse_hint_attribute_value(self, attribute, template):
-        return ValueProperty()
+        return attribute.value().getText()[1:-1]
 
     def _parse_signature_attribute_value(self, attribute, template):
         hex_str = attribute.value().getText()[3:-1]
