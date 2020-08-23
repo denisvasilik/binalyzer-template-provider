@@ -93,8 +93,6 @@ class XMLTemplateParser(XMLParserListener):
 
         if not parent:
             self._root = template
-        else:
-            parent._propagate_binding_context()
 
         self._templates.append(template)
 
@@ -108,7 +106,9 @@ class XMLTemplateParser(XMLParserListener):
         for attribute_name in self.ATTRIBUTES:
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    fn_name = "_parse_" + attribute_name + "_attribute"
+                    fn_name = (
+                        "_parse_" + attribute_name.replace("-", "_") + "_attribute"
+                    )
                     self.__class__.__dict__[fn_name](self, attribute, template, ctx)
 
         template.parent = parent
