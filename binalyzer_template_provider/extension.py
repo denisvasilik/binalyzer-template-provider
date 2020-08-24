@@ -40,7 +40,7 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
 
     def from_str(self, text: str, data: Optional[bytes] = None):
         template = XMLTemplateParser(text).parse()
-        self.binalyzer.template = template
         if data:
             self.binalyzer.data = io.BytesIO(data)
+        self.binalyzer.template = template
         return template
