@@ -17,4 +17,4 @@ __version__ = "{}".format(__tag__)
 __commit__ = "0000000"
 
 from .extension import XMLTemplateProviderExtension
-from .xml import XMLTemplateParser, XMLTemplateFileParser
+from .xml import XMLTemplateParser

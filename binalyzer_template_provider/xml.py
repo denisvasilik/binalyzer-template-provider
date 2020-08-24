@@ -37,48 +37,21 @@ from binalyzer_core import (
 from .generated import XMLParserListener, XMLLexer, XMLParser
 
 
-_log = logging.getLogger("binalyzer")
-_log.setLevel(logging.DEBUG)
-
-
-def create_input_stream(filepath):
-    with open(filepath, "r") as template_file:
-        return antlr4.InputStream(template_file.read())
-
-
 class XMLTemplateParser(XMLParserListener):
 
     DEFAULT_ADDRESSING_MODE = "relative"
     DEFAULT_SIZING = "auto"
 
     ATTRIBUTES = {
-        "name": lambda self, attribute, template, ctx: self._parse_name_attribute(
-            attribute, template, ctx
-        ),
-        "offset": lambda self, attribute, template, ctx: self._parse_offset_attribute(
-            attribute, template, ctx
-        ),
-        "size": lambda self, attribute, template, ctx: self._parse_size_attribute(
-            attribute, template, ctx
-        ),
-        "count": lambda self, attribute, template, ctx: self._parse_count_attribute(
-            attribute, template, ctx
-        ),
-        "signature": lambda self, attribute, template, ctx: self._parse_signature_attribute(
-            attribute, template, ctx
-        ),
-        "hint": lambda self, attribute, template, ctx: self._parse_hint_attribute(
-            attribute, template, ctx
-        ),
-        "padding-before": lambda self, attribute, template, ctx: self._parse_padding_before_attribute(
-            attribute, template, ctx
-        ),
-        "padding-after": lambda self, attribute, template, ctx: self._parse_padding_after_attribute(
-            attribute, template, ctx
-        ),
-        "boundary": lambda self, attribute, template, ctx: self._parse_boundary_attribute(
-            attribute, template, ctx
-        ),
+        "name",
+        "offset",
+        "size",
+        "count",
+        "signature",
+        "hint",
+        "padding-before",
+        "padding-after",
+        "boundary",
     }
 
     CONVERTERS = {
@@ -102,7 +75,7 @@ class XMLTemplateParser(XMLParserListener):
         self._parse_tree = self._parser.document()
         self._parse_tree_walker = antlr4.ParseTreeWalker()
         self._root = None
-        self._elements = []
+        self._templates = []
         self._data = data
         self._signature_property = None
         self._hint_property = None
@@ -113,85 +86,49 @@ class XMLTemplateParser(XMLParserListener):
 
     def enterElement(self, ctx):
         parent = None
-        if self._elements:
-            parent = self._elements[-1]
+        if self._templates:
+            parent = self._templates[-1]
 
-        template = Template(parent=parent)
-        if self._data:  # for data dependant templates
-            template.binding_context = BindingContext(
-                TemplateProvider(template), DataProvider(io.BytesIO(self._data))
-            )
-
-        self._signature_property = None
-        self._hint_property = None
-
-        element = self._parse_template_attributes(template, parent, ctx)
-
-        # element has a hint attribute
-        if self._hint_property:
-            if self._signature_property is None:
-                raise RuntimeError("Optional templates need a signature.")
-            size = len(self._signature_property)
-            element.binding_context.data_provider.data.seek(element.absolute_address)
-            byte_val = element.binding_context.data_provider.data.read(size)
-            if self._signature_property != byte_val:
-                element.parent = None
-        # element has a signature attribute
-        elif self._signature_property:
-            size = len(self._signature_property)
-            element.binding_context.data_provider.data.seek(element.absolute_address)
-            byte_val = element.binding_context.data_provider.data.read(size)
-            if self._signature_property != byte_val:
-                if element.name is None:
-                    raise RuntimeError("Signature validation failed.")
-                else:
-                    raise RuntimeError(
-                        'Signature validation failed for "' + element.name + '".'
-                    )
+        template = self._parse_attributes(Template(), parent, ctx)
 
         if not parent:
             self._root = template
-        elif parent and parent.count > 1:
-            # Remove template from tree as it will be used as a prototype for
-            # duplication at data binding time.
-            template.parent = None
-            parent.prototypes.append(template)
-        else:
-            element._add_name_to_parent(parent)
-            parent._propagate_binding_context()
-        self._elements.append(element)
+
+        self._templates.append(template)
 
     def exitElement(self, ctx):
-        if self._elements:
-            self._elements.pop()
+        if self._templates:
+            self._templates.pop()
 
-    def _parse_template_attributes(self, template, parent, ctx):
+    def _parse_attributes(self, template, parent, ctx):
         self._parse_sizing_attribute(template, ctx)
 
-        for attribute_name, attribute_func in self.ATTRIBUTES.items():
+        for attribute_name in self.ATTRIBUTES:
             for attribute in ctx.attribute():
                 if attribute_name == attribute.Name().getText():
-                    attribute_func(self, attribute, template, ctx)
+                    fn_name = (
+                        "_parse_" + attribute_name.replace("-", "_") + "_attribute"
+                    )
+                    self.__class__.__dict__[fn_name](self, attribute, template, ctx)
+
         template.parent = parent
         return template
 
     def _parse_name_attribute(self, attribute, template, ctx):
         if attribute.binding() is not None:
-            raise RuntimeError(
-                "Using a reference for the name attribute is not allowed."
-            )
+            raise RuntimeError("Using a reference for a name attribute is not allowed.")
         template.name = attribute.value().getText()[1:-1]
 
     def _parse_count_attribute(self, attribute, template, ctx):
-        count_property = self._parse_attribute_value(attribute, template)
-        value = count_property.value
-        template.count_property = count_property
+        template.count_property = self._parse_attribute_value(attribute, template)
 
     def _parse_signature_attribute(self, attribute, template, ctx):
-        self._signature_property = self._parse_attribute_value(attribute, template)
+        template.signature_property = self._parse_signature_attribute_value(
+            attribute, template
+        )
 
     def _parse_hint_attribute(self, attribute, template, ctx):
-        self._hint_property = self._parse_attribute_value(attribute, template)
+        template.hint_property = self._parse_hint_attribute_value(attribute, template)
 
     def _parse_offset_attribute(self, attribute, template, ctx):
         offset_property = self._parse_attribute_value(attribute, template)
@@ -201,7 +138,10 @@ class XMLTemplateParser(XMLParserListener):
             template.offset_property = offset_property
         elif addressing_mode == "relative":
             if isinstance(offset_property, ReferenceProperty):
-                template.offset_property = RelativeOffsetReferenceProperty(template)
+                reference_name = offset_property.value_provider.reference_name
+                template.offset_property = RelativeOffsetReferenceProperty(
+                    template, reference_name
+                )
             else:
                 template.offset_property = RelativeOffsetValueProperty(
                     template, ignore_boundary=True
@@ -247,62 +187,51 @@ class XMLTemplateParser(XMLParserListener):
             attribute, template
         )
 
+    def _parse_hint_attribute_value(self, attribute, template):
+        return attribute.value().getText()[1:-1]
+
+    def _parse_signature_attribute_value(self, attribute, template):
+        hex_str = attribute.value().getText()[3:-1]
+        return bytes.fromhex(hex_str)
+
     def _parse_attribute_value(self, attribute, template):
-        attribute_name = attribute.Name().getText()
-
-        if attribute_name == "hint":
-            return ValueProperty()
-
-        if attribute_name == "signature":
-            hex_str = attribute.value().getText()[3:-1]
-            return bytes.fromhex(hex_str)
-
         if attribute.value() is not None:
-            _log.debug("Parse value of attribute %s", attribute_name)
             value = int(attribute.value().getText()[1:-1], base=0)
             return ValueProperty(value, template=template)
 
         if attribute.binding() is not None:
-            _log.debug("Parse attribute reference of %s", attribute_name)
-
-            reference = None
-            value_converter = IntegerValueConverter()
-            names = attribute.binding().sequence().BRACKET_NAME()
-
-            if not "name" in names:
-                name = names[0].getText()
-                if not name == "byteorder" and not name == "converter":
-                    reference = name
-
-            for i, name in enumerate(names):
-                if name.getText() == "name":
-                    reference = names[i + 1].getText()
-                elif name.getText() == "byteorder":
-                    byteorder = names[i + 1].getText()
-                    value_converter = IntegerValueConverter(byteorder)
-                elif name.getText() == "converter":
-                    converter_name = names[i + 1].getText()
-                    value_converter = self.CONVERTERS[converter_name][
-                        "value_converter"
-                    ]()
-                    value_provider = self.CONVERTERS[converter_name]["value_provider"](
-                        template
-                    )
-
-            if reference:
-                return ReferenceProperty(template, reference, value_converter)
-            else:
-                return PropertyBase(
-                    template=template,
-                    value_provider=value_provider,
-                    value_converter=value_converter,
-                )
+            return self._parse_attribute_value_reference(attribute, template)
 
         return ValueProperty()
 
+    def _parse_attribute_value_reference(self, attribute, template):
+        reference = None
+        value_converter = IntegerValueConverter()
+        names = attribute.binding().sequence().BRACKET_NAME()
 
-class XMLTemplateFileParser(XMLTemplateParser):
-    def __init__(self, filepath):
-        self.template_filepath = filepath
-        self.input_stream = create_input_stream(self.template_filepath)
-        super(XMLTemplateFileParser, self).__init__(self.input_stream)
+        if not "name" in names:
+            name = names[0].getText()
+            if not name == "byteorder" and not name == "converter":
+                reference = name
+
+        for i, name in enumerate(names):
+            if name.getText() == "name":
+                reference = names[i + 1].getText()
+            elif name.getText() == "byteorder":
+                byteorder = names[i + 1].getText()
+                value_converter = IntegerValueConverter(byteorder)
+            elif name.getText() == "converter":
+                converter_name = names[i + 1].getText()
+                value_converter = self.CONVERTERS[converter_name]["value_converter"]()
+                value_provider = self.CONVERTERS[converter_name]["value_provider"](
+                    template
+                )
+
+        if reference:
+            return ReferenceProperty(template, reference, value_converter)
+        else:
+            return PropertyBase(
+                template=template,
+                value_provider=value_provider,
+                value_converter=value_converter,
+            )
