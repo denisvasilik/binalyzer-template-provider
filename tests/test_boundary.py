@@ -166,5 +166,6 @@ def test_boundary_and_sizing_stretch_with_offset():
     assert binalyzer.template.size == 256
     assert binalyzer.template.header.size == 4
     assert binalyzer.template.header.value == bytes([0x02] * 4)
+    assert binalyzer.template.payload.offset == 4
     assert binalyzer.template.payload.size == 252
     assert binalyzer.template.payload.value == bytes([0x01] * 220)
