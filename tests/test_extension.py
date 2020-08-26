@@ -14,7 +14,7 @@ def test_from_url():
         url + "master/tests/resources/wasm_module.wasm",
     )
 
-    instructions = binalyzer.template.code_section.code.function.instructions
+    instructions = binalyzer.template.code_section.code.function.func_body.instructions
     instructions.value = bytes([0x0B, 0x00])
 
     assert binalyzer.template.magic.value == bytes([0x00, 0x61, 0x73, 0x6D])
