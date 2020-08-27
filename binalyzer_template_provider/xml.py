@@ -9,13 +9,11 @@
     :license: MIT
 """
 import antlr4
-import logging
-import copy
-import io
 
 from typing import Optional
 
 from binalyzer_core import (
+    Binalyzer,
     PropertyBase,
     ValueProperty,
     ReferenceProperty,
@@ -25,9 +23,6 @@ from binalyzer_core import (
     RelativeOffsetReferenceProperty,
     IntegerValueConverter,
     IdentityValueConverter,
-    LEB128UnsignedValueConverter,
-    LEB128UnsignedBindingValueProvider,
-    LEB128SizeBindingValueProvider,
     Template,
     TemplateProvider,
     DataProvider,
@@ -54,20 +49,12 @@ class XMLTemplateParser(XMLParserListener):
         "boundary",
     }
 
-    CONVERTERS = {
-        "leb128u": {
-            "value_converter": LEB128UnsignedValueConverter,
-            "value_provider": LEB128UnsignedBindingValueProvider,
-        },
-        "leb128size": {
-            "value_converter": IdentityValueConverter,
-            "value_provider": LEB128SizeBindingValueProvider,
-        },
-        "little": IntegerValueConverter("little"),
-        "big": IntegerValueConverter("big"),
-    }
-
-    def __init__(self, template: str, data: Optional[bytes] = None):
+    def __init__(
+        self,
+        template: str,
+        data: Optional[bytes] = None,
+        binalyzer: Optional[Binalyzer] = None,
+    ):
         self._input_stream = antlr4.InputStream(template.strip())
         self._lexer = XMLLexer(self._input_stream)
         self._common_token_stream = antlr4.CommonTokenStream(self._lexer)
@@ -77,8 +64,7 @@ class XMLTemplateParser(XMLParserListener):
         self._root = None
         self._templates = []
         self._data = data
-        self._signature_property = None
-        self._hint_property = None
+        self._binalyzer = binalyzer
 
     def parse(self):
         self._parse_tree_walker.walk(self, self._parse_tree)
@@ -221,11 +207,13 @@ class XMLTemplateParser(XMLParserListener):
                 byteorder = names[i + 1].getText()
                 value_converter = IntegerValueConverter(byteorder)
             elif name.getText() == "converter":
-                converter_name = names[i + 1].getText()
-                value_converter = self.CONVERTERS[converter_name]["value_converter"]()
-                value_provider = self.CONVERTERS[converter_name]["value_provider"](
-                    template
-                )
+                converter_path = (names[i + 1].getText()).split(".")
+                extension_name = converter_path[0]
+                converter_name = converter_path[1]
+                extension = self._binalyzer.extension(extension_name)
+                (value_converter, value_provider) = extension.__class__.__dict__[
+                    converter_name
+                ](extension, template)
 
         if reference:
             return ReferenceProperty(template, reference, value_converter)

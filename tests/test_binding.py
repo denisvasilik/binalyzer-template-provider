@@ -5,11 +5,27 @@
     This module implements tests related to a template's binding.
 """
 import io
+import pytest
 
 from anytree import find_by_attr
 
-from binalyzer_core import Binalyzer, Template, DataProvider, TemplateProvider
+from binalyzer_core import (
+    Binalyzer,
+    BinalyzerExtension,
+    Template,
+    DataProvider,
+    TemplateProvider,
+    IdentityValueConverter,
+    ValueProviderBase,
+)
 from binalyzer_template_provider import XMLTemplateParser
+
+
+@pytest.fixture
+def binalyzer():
+    binalyzer = Binalyzer()
+    MockExtension(binalyzer)
+    return binalyzer
 
 
 def test_field_cross_reference():
@@ -118,7 +134,7 @@ def test_binding_at_template_assignment():
     assert field2.size == 0x4000000
 
 
-def test_template_reference_with_converter():
+def test_template_reference_with_converter(binalyzer):
     data = io.BytesIO(bytes([0xE5, 0x8E, 0x26]))
     template = XMLTemplateParser(
         """
@@ -126,20 +142,21 @@ def test_template_reference_with_converter():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="3"></field>
-                    <field name="field1" size="{field1_size, converter=leb128u}"></field>
+                    <field name="field1" size="{field1_size, converter=mock.ref_custom}"></field>
                 </area>
             </layout>
-        </template>"""
+        </template>""",
+        binalyzer=binalyzer,
     ).parse()
     binalyzer = Binalyzer(template, data)
     field1_size = find_by_attr(template, "field1_size")
     field1 = find_by_attr(template, "field1")
     assert field1_size.size == 3
     assert field1_size.value == bytes([0xE5, 0x8E, 0x26])
-    assert field1.size == 624485
+    assert field1.size == 2526949
 
 
-def test_template_with_converter():
+def test_template_with_converter(binalyzer):
     data = io.BytesIO(bytes([0x01, 0x02, 0x03, 0xE5, 0x8E, 0x26]))
     template = XMLTemplateParser(
         """
@@ -147,10 +164,11 @@ def test_template_with_converter():
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="3"></field>
-                    <field name="field1" size="{converter=leb128u}"></field>
+                    <field name="field1" size="{converter=mock.custom}"></field>
                 </area>
             </layout>
-        </template>"""
+        </template>""",
+        binalyzer=binalyzer,
     ).parse()
     binalyzer = Binalyzer(template, data)
     field1_size = find_by_attr(template, "field1_size")
@@ -158,4 +176,40 @@ def test_template_with_converter():
     assert field1_size.size == 3
     assert field1_size.value == bytes([0x01, 0x02, 0x03])
     assert field1.value == bytes([0xE5, 0x8E, 0x26])
-    assert field1.size == 1656614
+    assert field1.size == 2526949
+
+
+class MockExtension(BinalyzerExtension):
+    def __init__(self, binalyzer=None):
+        super(MockExtension, self).__init__(binalyzer, "mock")
+
+    def init_extension(self):
+        super(MockExtension, self).init_extension()
+
+    def custom(self, template):
+        return (IdentityValueConverter(), MockValueProvider(template))
+
+    def ref_custom(self, template):
+        return (MockValueConverter(), MockValueProvider(template))
+
+
+class MockValueProvider(ValueProviderBase):
+    def __init__(self, template=None):
+        self.template = template
+
+    def get_value(self):
+        data = self.template.binding_context.data_provider.data
+        absolute_address = self.template.absolute_address
+        data.seek(absolute_address)
+        return int.from_bytes(data.read(3), "little")
+
+    def set_value(self, value):
+        raise RuntimeError("Not implemented")
+
+
+class MockValueConverter(object):
+    def convert(self, value, template):
+        return int.from_bytes(value, "little")
+
+    def convert_back(self, value, template):
+        raise RuntimeError("Not implemented")

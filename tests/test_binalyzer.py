@@ -20,6 +20,7 @@ from binalyzer_core import (
     TemplateProvider,
 )
 from binalyzer_template_provider import XMLTemplateParser, XMLTemplateProviderExtension
+from binalyzer_wasm import WebAssemblyExtension
 
 
 TEST_DATA_STREAM_128 = io.BytesIO(
@@ -37,6 +38,7 @@ def assertStreamEqual(first, second):
 def binalyzer():
     binalyzer = Binalyzer()
     XMLTemplateProviderExtension(binalyzer)
+    WebAssemblyExtension(binalyzer)
     return binalyzer
 
 

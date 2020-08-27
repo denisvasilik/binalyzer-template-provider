@@ -61,7 +61,8 @@ NameStartChar
 // ----------------- Everything INSIDE of a BRACKET ---------------------
 mode INSIDE_BRACKET;
 BRACKET_CLOSE: '}'                      -> popMode ;
-BRACKET_NAME: [a-zA-Z0-9_-]+;
+BRACKET_DOT: '.';
+BRACKET_NAME: ([a-zA-Z0-9_-] '.'?)+;
 BRACKET_COMMA: ',';
 BRACKET_EQUAL: '=';
 BRACKET_WS: [ \r\t\n]                   -> skip;
