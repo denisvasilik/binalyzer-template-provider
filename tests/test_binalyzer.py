@@ -99,7 +99,7 @@ def test_analysis_of_static_template(binalyzer):
 def test_analysis_of_dynamic_template(binalyzer):
     cwd_path = os.path.dirname(os.path.abspath(__file__))
     binalyzer.xml.from_file(
-        os.path.join(cwd_path, "resources/wasm_module.xml"),
+        os.path.join(cwd_path, "resources/wasm_module_format.xml"),
         os.path.join(cwd_path, "resources/wasm_module.wasm"),
     )
 
@@ -113,7 +113,7 @@ def test_analysis_of_dynamic_template(binalyzer):
 def test_data_modification(binalyzer):
     cwd_path = os.path.dirname(os.path.abspath(__file__))
     binalyzer.xml.from_file(
-        os.path.join(cwd_path, "resources/wasm_module.xml"),
+        os.path.join(cwd_path, "resources/wasm_module_format.xml"),
         os.path.join(cwd_path, "resources/wasm_module.wasm"),
     )
 

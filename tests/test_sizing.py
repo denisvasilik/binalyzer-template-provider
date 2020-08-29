@@ -46,7 +46,7 @@ def test_get_previous_siblings():
     ).parse()
 
     actual_siblings = leftsiblings(template.child2)
-    expected_siblings = [template.child1, template.child0]
+    expected_siblings = [template.child0, template.child1]
 
     assert expected_siblings == actual_siblings
 
@@ -101,10 +101,10 @@ def test_get_siblings():
     ).parse()
 
     expected_siblings = [
-        template.child3,
-        template.child2,
-        template.child1,
         template.child0,
+        template.child1,
+        template.child2,
+        template.child3,
     ]
 
     actual_siblings = siblings(template.child4)
