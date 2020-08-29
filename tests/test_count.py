@@ -69,7 +69,7 @@ def test_count_attribute_nested(binalyzer):
 def test_wasm_import_header_duplication_with_children(binalyzer):
     cwd_path = os.path.dirname(os.path.abspath(__file__))
     binalyzer.xml.from_file(
-        os.path.join(cwd_path, "resources/app-hello-wasm.xml"),
+        os.path.join(cwd_path, "resources/wasm_module_format.xml"),
         os.path.join(cwd_path, "resources/app-hello-wasm.wasm"),
     )
 
