@@ -12,7 +12,7 @@ def test_from_url():
     XMLTemplateProviderExtension(binalyzer)
     WebAssemblyExtension(binalyzer)
     binalyzer.xml.from_url(
-        url + "master/tests/resources/wasm_module.xml",
+        url + "master/tests/resources/wasm_module_format.xml",
         url + "master/tests/resources/wasm_module.wasm",
     )
 
