@@ -23,17 +23,6 @@ from binalyzer_template_provider import XMLTemplateParser, XMLTemplateProviderEx
 from binalyzer_wasm import WebAssemblyExtension
 
 
-TEST_DATA_STREAM_128 = io.BytesIO(
-    bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
-)
-
-
-def assertStreamEqual(first, second):
-    for first_byte in first:
-        for second_byte in second:
-            assert first_byte == second_byte
-
-
 @pytest.fixture
 def binalyzer():
     binalyzer = Binalyzer()
@@ -43,6 +32,7 @@ def binalyzer():
 
 
 def test_data_generation(binalyzer):
+    expected_byte_sequence = bytes([0] * 32 + [1] * 32 + [2] * 32 + [3] * 32)
     binalyzer.xml.from_str(
         """
         <template>
@@ -63,7 +53,7 @@ def test_data_generation(binalyzer):
     binalyzer.template.layout.area.field3.value = bytes([3] * 32)
 
     assert binalyzer.template.size == 128
-    assertStreamEqual(binalyzer.data, TEST_DATA_STREAM_128)
+    assert binalyzer.template.value == expected_byte_sequence
 
 
 def test_analysis_of_static_template(binalyzer):

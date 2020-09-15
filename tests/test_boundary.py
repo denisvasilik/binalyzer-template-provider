@@ -70,7 +70,7 @@ def test_boundary_attribute_with_offset():
     ).parse()
     assert isinstance(template, Template)
     assert isinstance(template.boundary_property, ValueProperty)
-    assert template.offset == 32
+    assert template.offset == 256
     assert template.size == 256
 
 
@@ -160,12 +160,14 @@ def test_boundary_and_sizing_stretch_with_offset():
     """
     ).parse()
     binalyzer = Binalyzer(template)
-    binalyzer.data = io.BytesIO(bytes([0x01] * binalyzer.template.size))
     binalyzer.template.header.value = bytes([0x02] * 4)
-    assert binalyzer.template.offset == 32
+    binalyzer.template.payload.value = bytes([0x01] * binalyzer.template.payload.size)
+    assert binalyzer.template.offset == 256
     assert binalyzer.template.size == 256
     assert binalyzer.template.header.size == 4
     assert binalyzer.template.header.value == bytes([0x02] * 4)
     assert binalyzer.template.payload.offset == 4
     assert binalyzer.template.payload.size == 252
-    assert binalyzer.template.payload.value == bytes([0x01] * 220)
+    assert binalyzer.template.payload.value == bytes(
+        [0x01] * binalyzer.template.payload.size
+    )

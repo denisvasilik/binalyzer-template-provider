@@ -12,6 +12,7 @@ from binalyzer_core import (
     ValueProperty,
     ReferenceProperty,
     RelativeOffsetReferenceProperty,
+    OffsetValueProperty,
     RelativeOffsetValueProperty,
     AutoSizeValueProperty,
     StretchSizeProperty,
@@ -87,7 +88,7 @@ def test_offset_attribute_value():
     """
     template = XMLTemplateParser(template_description).parse()
     assert template.offset == 0x10
-    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+    assert isinstance(template.offset_property, OffsetValueProperty)
 
 
 def test_offset_attribute_reference():

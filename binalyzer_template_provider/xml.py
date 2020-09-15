@@ -19,7 +19,7 @@ from binalyzer_core import (
     ReferenceProperty,
     AutoSizeValueProperty,
     StretchSizeProperty,
-    RelativeOffsetValueProperty,
+    OffsetValueProperty,
     RelativeOffsetReferenceProperty,
     IntegerValueConverter,
     IdentityValueConverter,
@@ -129,10 +129,9 @@ class XMLTemplateParser(XMLParserListener):
                     template, reference_name
                 )
             else:
-                template.offset_property = RelativeOffsetValueProperty(
-                    template, ignore_boundary=True
+                template.offset_property = OffsetValueProperty(
+                    template, offset_property.value
                 )
-                template.offset_property.value = offset_property.value
         else:
             raise RuntimeError("Expected 'absolute' or 'relative'.")
 

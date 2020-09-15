@@ -219,13 +219,13 @@ def test_size_aggregation_using_same_offsets():
                     <field name="field3" size="1"></field>
                     <field name="field4" size="1"></field>
                 </area>
-                <area name="area01" offset="10">
+                <area name="area01" offset="0x20">
                     <field name="field5" size="2"></field>
                     <field name="field6" size="2"></field>
                     <field name="field7" size="2"></field>
                     <field name="field8" size="2"></field>
                 </area>
-                <area name="area02" offset="10">
+                <area name="area02" offset="0x20">
                     <field name="field9" size="8"></field>
                     <field name="field10" size="8"></field>
                     <field name="field11" size="8"></field>
@@ -234,8 +234,6 @@ def test_size_aggregation_using_same_offsets():
             </layout>
         </template>"""
     ).parse()
-    assert template.size == 64
-    assert template.layout0.size == 64
     assert template.layout0.area00.size == 4
     assert template.layout0.area00.field1.size == 1
     assert template.layout0.area00.field2.size == 1
@@ -243,6 +241,8 @@ def test_size_aggregation_using_same_offsets():
     assert template.layout0.area00.field4.size == 1
     assert template.layout0.area01.size == 8
     assert template.layout0.area02.size == 32
+    assert template.layout0.size == 64
+    assert template.size == 64
 
 
 def test_size_with_resolvable_values():

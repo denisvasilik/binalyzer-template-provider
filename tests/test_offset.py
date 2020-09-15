@@ -10,6 +10,7 @@ from binalyzer_core import (
     Binalyzer,
     Template,
     RelativeOffsetValueProperty,
+    OffsetValueProperty,
     ValueProperty,
 )
 from binalyzer_template_provider import XMLTemplateParser
@@ -18,12 +19,6 @@ from binalyzer_template_provider import XMLTemplateParser
 TEST_DATA_STREAM_128 = io.BytesIO(
     bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
 )
-
-
-def assertStreamEqual(first, second):
-    for first_byte in first:
-        for second_byte in second:
-            assert first_byte == second_byte
 
 
 def test_offset_attribute():
@@ -36,7 +31,7 @@ def test_offset_attribute():
     assert isinstance(template, Template)
     assert template.offset == 0x100
     assert template.absolute_address == 0x100
-    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+    assert isinstance(template.offset_property, OffsetValueProperty)
 
 
 def test_addressing_mode_absolute_without_offset_attribute():
@@ -88,59 +83,47 @@ def test_addressing_mode_relative_with_offset_attribute():
     assert template.offset == 0x1
     assert template.absolute_address == 0x1
     assert isinstance(template, Template)
-    assert isinstance(template.offset_property, RelativeOffsetValueProperty)
+    assert isinstance(template.offset_property, OffsetValueProperty)
 
 
 def test_field_absolute_offset():
-    expected_data_stream = io.BytesIO(
-        bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
-    )
+    expected_data_stream = bytes([0] * 32 + [1] * 32 + [2] * 32 + [3] * 32)
     test_data_stream = io.BytesIO(bytes([0] * 128))
     template = XMLTemplateParser(
         """<template name="template0">
-            <layout name="layout0">
-                <area name="area0">
-                    <field name="field0" offset="0" size="32"></field>
-                    <field name="field1" offset="32" size="32"></field>
-                    <field name="field2" offset="64" size="32"></field>
-                    <field name="field3" offset="96" size="32"></field>
-                </area>
-            </layout>
+            <field name="field0" offset="0" size="32"></field>
+            <field name="field1" offset="32" size="32"></field>
+            <field name="field2" offset="64" size="32"></field>
+            <field name="field3" offset="96" size="32"></field>
         </template>"""
     ).parse()
     binalyzer = Binalyzer(template, test_data_stream)
-    area = template.layout0.area0
-    area.children[0].value = bytes([0] * 32)
-    area.children[1].value = bytes([1] * 32)
-    area.children[2].value = bytes([2] * 32)
-    area.children[3].value = bytes([3] * 32)
-    assertStreamEqual(test_data_stream, expected_data_stream)
+    template = binalyzer.template
+    template.field0.value = bytes([0] * 32)
+    template.field1.value = bytes([1] * 32)
+    template.field2.value = bytes([2] * 32)
+    template.field3.value = bytes([3] * 32)
+    assert binalyzer.template.value == expected_data_stream
 
 
 def test_field_relative_offset():
-    expected_data_stream = io.BytesIO(
-        bytes([0] * 32) + bytes([1] * 32) + bytes([2] * 32) + bytes([3] * 32)
-    )
+    expected_data_stream = bytes([0] * 32 + [1] * 32 + [2] * 32 + [3] * 32)
     test_data_stream = io.BytesIO(bytes([0] * 128))
     template = XMLTemplateParser(
         """<template name="template0">
-            <layout name="layout0">
-                <area name="area0">
-                    <field name="field0" size="32"></field>
-                    <field name="field1" size="32"></field>
-                    <field name="field2" size="32"></field>
-                    <field name="field3" size="32"></field>
-                </area>
-            </layout>
+            <field name="field0" size="32"></field>
+            <field name="field1" size="32"></field>
+            <field name="field2" size="32"></field>
+            <field name="field3" size="32"></field>
         </template>"""
     ).parse()
     binalyzer = Binalyzer(template, test_data_stream)
-    area = template.layout0.area0
-    area.children[0].value = bytes([0] * 32)
-    area.children[1].value = bytes([1] * 32)
-    area.children[2].value = bytes([2] * 32)
-    area.children[3].value = bytes([3] * 32)
-    assertStreamEqual(test_data_stream, expected_data_stream)
+
+    binalyzer.template.field0.value = bytes([0] * 32)
+    binalyzer.template.field1.value = bytes([1] * 32)
+    binalyzer.template.field2.value = bytes([2] * 32)
+    binalyzer.template.field3.value = bytes([3] * 32)
+    assert binalyzer.template.value == expected_data_stream
 
 
 def test_offset_override():
