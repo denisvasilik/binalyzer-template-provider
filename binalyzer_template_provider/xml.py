@@ -193,7 +193,7 @@ class XMLTemplateParser(XMLParserListener):
 
         if not "name" in names:
             name = names[0].getText()
-            if not name == "byteorder" and not name == "converter":
+            if not name == "byteorder" and not name == "provider":
                 reference_name = name
 
         byteorder = "little"
@@ -202,12 +202,12 @@ class XMLTemplateParser(XMLParserListener):
                 reference_name = names[i + 1].getText()
             elif name.getText() == "byteorder":
                 byteorder = names[i + 1].getText()
-            elif name.getText() == "converter":
-                converter_path = (names[i + 1].getText()).split(".")
-                extension_name = converter_path[0]
-                converter_name = converter_path[1]
+            elif name.getText() == "provider":
+                provider_path = (names[i + 1].getText()).split(".")
+                extension_name = provider_path[0]
+                provider_name = provider_path[1]
                 extension = self._binalyzer.extension(extension_name)
-                value_provider = extension.__class__.__dict__[converter_name](
+                value_provider = extension.__class__.__dict__[provider_name](
                     extension, template
                 )
 

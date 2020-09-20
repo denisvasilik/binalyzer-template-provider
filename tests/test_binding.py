@@ -133,7 +133,7 @@ def test_binding_at_template_assignment():
     assert field2.size == 0x4000000
 
 
-def test_template_reference_with_converter(binalyzer):
+def test_template_reference_with_provider(binalyzer):
     data = io.BytesIO(bytes([0xE5, 0x8E, 0x26]))
     template = XMLTemplateParser(
         """
@@ -141,7 +141,7 @@ def test_template_reference_with_converter(binalyzer):
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="3"></field>
-                    <field name="field1" size="{field1_size, converter=mock.ref_custom}"></field>
+                    <field name="field1" size="{field1_size, provider=mock.ref_custom}"></field>
                 </area>
             </layout>
         </template>""",
@@ -155,7 +155,7 @@ def test_template_reference_with_converter(binalyzer):
     assert field1.size == 2526949
 
 
-def test_template_with_converter(binalyzer):
+def test_template_with_provider(binalyzer):
     data = io.BytesIO(bytes([0x01, 0x02, 0x03, 0xE5, 0x8E, 0x26]))
     template = XMLTemplateParser(
         """
@@ -163,7 +163,7 @@ def test_template_with_converter(binalyzer):
             <layout name="layout0">
                 <area name="area0">
                     <field name="field1_size" size="3"></field>
-                    <field name="field1" size="{converter=mock.custom}"></field>
+                    <field name="field1" size="{provider=mock.custom}"></field>
                 </area>
             </layout>
         </template>""",
