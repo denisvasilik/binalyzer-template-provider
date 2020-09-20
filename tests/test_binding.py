@@ -15,7 +15,6 @@ from binalyzer_core import (
     Template,
     DataProvider,
     TemplateProvider,
-    IdentityValueConverter,
     ValueProviderBase,
 )
 from binalyzer_template_provider import XMLTemplateParser
@@ -187,10 +186,10 @@ class MockExtension(BinalyzerExtension):
         super(MockExtension, self).init_extension()
 
     def custom(self, template):
-        return (IdentityValueConverter(), MockValueProvider(template))
+        return MockValueProvider(template)
 
     def ref_custom(self, template):
-        return (MockValueConverter(), MockValueProvider(template))
+        return MockValueProvider(template)
 
 
 class MockValueProvider(ValueProviderBase):
@@ -204,12 +203,4 @@ class MockValueProvider(ValueProviderBase):
         return int.from_bytes(data.read(3), "little")
 
     def set_value(self, value):
-        raise RuntimeError("Not implemented")
-
-
-class MockValueConverter(object):
-    def convert(self, value, template):
-        return int.from_bytes(value, "little")
-
-    def convert_back(self, value, template):
         raise RuntimeError("Not implemented")

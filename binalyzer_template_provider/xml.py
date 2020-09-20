@@ -21,8 +21,6 @@ from binalyzer_core import (
     StretchSizeProperty,
     OffsetValueProperty,
     RelativeOffsetReferenceProperty,
-    IntegerValueConverter,
-    IdentityValueConverter,
     Template,
     TemplateProvider,
     DataProvider,
@@ -190,35 +188,32 @@ class XMLTemplateParser(XMLParserListener):
         return ValueProperty()
 
     def _parse_attribute_value_reference(self, attribute, template):
-        reference = None
-        value_converter = IntegerValueConverter()
+        reference_name = None
         names = attribute.binding().sequence().BRACKET_NAME()
 
         if not "name" in names:
             name = names[0].getText()
             if not name == "byteorder" and not name == "converter":
-                reference = name
+                reference_name = name
 
+        byteorder = "little"
         for i, name in enumerate(names):
             if name.getText() == "name":
-                reference = names[i + 1].getText()
+                reference_name = names[i + 1].getText()
             elif name.getText() == "byteorder":
                 byteorder = names[i + 1].getText()
-                value_converter = IntegerValueConverter(byteorder)
             elif name.getText() == "converter":
                 converter_path = (names[i + 1].getText()).split(".")
                 extension_name = converter_path[0]
                 converter_name = converter_path[1]
                 extension = self._binalyzer.extension(extension_name)
-                (value_converter, value_provider) = extension.__class__.__dict__[
-                    converter_name
-                ](extension, template)
+                value_provider = extension.__class__.__dict__[converter_name](
+                    extension, template
+                )
 
-        if reference:
-            return ReferenceProperty(template, reference, value_converter)
+        if reference_name:
+            ref_property = ReferenceProperty(template, reference_name)
+            ref_property.value_provider.byteorder = byteorder
+            return ref_property
         else:
-            return PropertyBase(
-                template=template,
-                value_provider=value_provider,
-                value_converter=value_converter,
-            )
+            return PropertyBase(template=template, value_provider=value_provider)
