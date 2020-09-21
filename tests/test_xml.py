@@ -62,7 +62,7 @@ def test_count_attribute_reference():
         <template count="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.count_property.value_provider.reference_name == "nowhere"
+    assert template.count_property.reference_name == "nowhere"
     assert isinstance(template.count_property, ReferenceProperty)
 
 
@@ -96,7 +96,7 @@ def test_offset_attribute_reference():
         <template offset="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.offset_property.value_provider.reference_name == "nowhere"
+    assert template.offset_property.reference_name == "nowhere"
     assert isinstance(template.offset_property, RelativeOffsetReferenceProperty)
 
 
@@ -146,7 +146,7 @@ def test_size_attribute_reference():
         <template size="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.size_property.value_provider.reference_name == "nowhere"
+    assert template.size_property.reference_name == "nowhere"
     assert isinstance(template.size_property, ReferenceProperty)
 
 
@@ -196,7 +196,7 @@ def test_boundary_attribute_reference():
         <template boundary="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.boundary_property.value_provider.reference_name == "nowhere"
+    assert template.boundary_property.reference_name == "nowhere"
     assert isinstance(template.boundary_property, ReferenceProperty)
 
 
@@ -214,7 +214,7 @@ def padding_before_attribute_reference():
         <template padding-before="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.padding_before.value_provider.reference_name == "nowhere"
+    assert template.padding_before.reference_name == "nowhere"
     assert isinstance(template.padding_before, ReferenceProperty)
 
 
@@ -232,7 +232,7 @@ def padding_after_attribute_referenced_value():
         <template padding-after="{nowhere}"></template>
     """
     template = XMLTemplateParser(template_description).parse()
-    assert template.padding_after.value_provider.reference_name == "nowhere"
+    assert template.padding_after.reference_name == "nowhere"
     assert isinstance(template.padding_after, ReferenceProperty)
 
 

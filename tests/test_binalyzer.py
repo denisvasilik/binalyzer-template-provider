@@ -93,7 +93,9 @@ def test_analysis_of_dynamic_template(binalyzer):
         os.path.join(cwd_path, "resources/wasm_module.wasm"),
     )
 
-    instructions = binalyzer.template.code_section.code.function.func_body.instructions
+    template = binalyzer.template
+
+    instructions = template.code_section.code.function.func_body.instructions
 
     assert binalyzer.template.magic.value == bytes([0x00, 0x61, 0x73, 0x6D])
     assert binalyzer.template.version.value == bytes([0x01, 0x00, 0x00, 0x00])

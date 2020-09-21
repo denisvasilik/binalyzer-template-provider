@@ -185,20 +185,24 @@ class MockExtension(BinalyzerExtension):
     def init_extension(self):
         super(MockExtension, self).init_extension()
 
-    def custom(self, template):
-        return MockValueProvider(template)
+    def custom(self, property):
+        value_provider = MockValueProvider(property)
+        property.value_provider = value_provider
+        return value_provider
 
-    def ref_custom(self, template):
-        return MockValueProvider(template)
+    def ref_custom(self, property):
+        value_provider = MockValueProvider(property)
+        property.value_provider = value_provider
+        return value_provider
 
 
 class MockValueProvider(ValueProviderBase):
-    def __init__(self, template=None):
-        self.template = template
+    def __init__(self, property):
+        self.property = property
 
     def get_value(self):
-        data = self.template.binding_context.data_provider.data
-        absolute_address = self.template.absolute_address
+        data = self.property.template.binding_context.data_provider.data
+        absolute_address = self.property.template.absolute_address
         data.seek(absolute_address)
         return int.from_bytes(data.read(3), "little")
 

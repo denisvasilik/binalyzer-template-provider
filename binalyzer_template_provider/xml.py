@@ -122,7 +122,7 @@ class XMLTemplateParser(XMLParserListener):
             template.offset_property = offset_property
         elif addressing_mode == "relative":
             if isinstance(offset_property, ReferenceProperty):
-                reference_name = offset_property.value_provider.reference_name
+                reference_name = offset_property.reference_name
                 template.offset_property = RelativeOffsetReferenceProperty(
                     template, reference_name
                 )
@@ -197,6 +197,8 @@ class XMLTemplateParser(XMLParserListener):
                 reference_name = name
 
         byteorder = "little"
+        extension = None
+        provider_name = ""
         for i, name in enumerate(names):
             if name.getText() == "name":
                 reference_name = names[i + 1].getText()
@@ -207,13 +209,21 @@ class XMLTemplateParser(XMLParserListener):
                 extension_name = provider_path[0]
                 provider_name = provider_path[1]
                 extension = self._binalyzer.extension(extension_name)
-                value_provider = extension.__class__.__dict__[provider_name](
-                    extension, template
-                )
 
         if reference_name:
             ref_property = ReferenceProperty(template, reference_name)
-            ref_property.value_provider.byteorder = byteorder
+            if extension:
+                ref_property.value_provider = extension.__class__.__dict__[
+                    provider_name
+                ](extension, ref_property)
+            else:
+                ref_property.value_provider.byteorder = byteorder
             return ref_property
         else:
-            return PropertyBase(template=template, value_provider=value_provider)
+            # ValueProperty caused problems here
+            value_property = PropertyBase(template, None)
+            if extension:
+                value_property.value_provider = extension.__class__.__dict__[
+                    provider_name
+                ](extension, value_property)
+            return value_property
