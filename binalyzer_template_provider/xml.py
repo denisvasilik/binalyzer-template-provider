@@ -23,6 +23,7 @@ from binalyzer_core import (
     RelativeOffsetReferenceProperty,
     Template,
     TemplateProvider,
+    TemplateValueProvider,
     DataProvider,
     BindingContext,
 )
@@ -197,7 +198,7 @@ class XMLTemplateParser(XMLParserListener):
                 reference_name = name
 
         byteorder = "little"
-        extension = None
+        extension_name = None
         provider_name = ""
         for i, name in enumerate(names):
             if name.getText() == "name":
@@ -208,22 +209,24 @@ class XMLTemplateParser(XMLParserListener):
                 provider_path = (names[i + 1].getText()).split(".")
                 extension_name = provider_path[0]
                 provider_name = provider_path[1]
-                extension = self._binalyzer.extension(extension_name)
 
         if reference_name:
             ref_property = ReferenceProperty(template, reference_name)
-            if extension:
-                ref_property.value_provider = extension.__class__.__dict__[
-                    provider_name
-                ](extension, ref_property)
-            else:
+            ref_property.value_provider = self._get_custom_value_provider(
+                extension_name, provider_name, ref_property
+            )
+            if isinstance(ref_property.value_provider, TemplateValueProvider):
                 ref_property.value_provider.byteorder = byteorder
             return ref_property
         else:
-            # ValueProperty caused problems here
-            value_property = PropertyBase(template, None)
-            if extension:
-                value_property.value_provider = extension.__class__.__dict__[
-                    provider_name
-                ](extension, value_property)
+            value_property = PropertyBase(template)
+            value_property.value_provider = self._get_custom_value_provider(
+                extension_name, provider_name, value_property
+            )
             return value_property
+
+    def _get_custom_value_provider(self, extension_name, provider_name, property):
+        if not extension_name:
+            return property.value_provider
+        extension = self._binalyzer.extension(extension_name)
+        return extension.__class__.__dict__[provider_name](extension, property)
