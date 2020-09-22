@@ -349,8 +349,6 @@ def test_size_and_boundary_without_leaf_node():
             </layout>
         </template>"""
     ).parse()
-    # Start on boundary
     assert template.layout0.area0.offset == 0x100
     assert template.layout0.area0.absolute_address == 0x400
-    # End on boundary
-    assert template.layout0.area0.size == 0x200
+    assert template.layout0.area0.size == 0x0

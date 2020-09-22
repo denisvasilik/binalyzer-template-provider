@@ -28,13 +28,16 @@ def test_boundary_attribute():
     assert isinstance(template.boundary_property, ValueProperty)
     assert template.offset == 0
     assert template.boundary == 0x800
+    assert template.size == 0
 
 
 def test_boundary_attribute_nested():
     template = XMLTemplateParser(
         """
         <template boundary="0x200">
-            <template boundary="0x100"></template>
+            <template boundary="0x100">
+                <field size="1"></field>
+            </template>
         </template>
     """
     ).parse()
@@ -50,7 +53,10 @@ def test_boundary_attribute_nested_with_inner_element_having_greater_boundary():
     template = XMLTemplateParser(
         """
         <template boundary="0x200">
-            <template boundary="0x500"></template>
+            <template boundary="0x500">
+                <field name="field" size="1">
+                </field>
+            </template>
         </template>
     """
     ).parse()
@@ -65,7 +71,22 @@ def test_boundary_attribute_nested_with_inner_element_having_greater_boundary():
 def test_boundary_attribute_with_offset():
     template = XMLTemplateParser(
         """
-        <template offset="0x20" boundary="0x100"></template>
+        <template offset="0x20" boundary="0x100">
+        </template>
+    """
+    ).parse()
+    assert isinstance(template, Template)
+    assert isinstance(template.boundary_property, ValueProperty)
+    assert template.offset == 256
+    assert template.size == 0
+
+
+def test_boundary_attribute_with_offset_and_child():
+    template = XMLTemplateParser(
+        """
+        <template offset="0x20" boundary="0x100">
+            <field size="1"></field>
+        </template>
     """
     ).parse()
     assert isinstance(template, Template)
@@ -79,7 +100,9 @@ def test_boundary_attribute_with_parent_offset_on_boundary():
         """
         <template>
             <layout name="layout" offset="0x200">
-                <area name="area" boundary="0x200"></area>
+                <area name="area" boundary="0x200">
+                    <field name="field" size="1"></field>
+                </area>
             </layout>
         </template>
     """
@@ -97,6 +120,7 @@ def test_boundary_attribute_with_parent_offset_besides_boundary():
         <template>
             <layout name="layout" offset="0x300">
                 <area name="area" boundary="0x200">
+                    <field name="field" size="1"></field>
                 </area>
             </layout>
         </template>"""
@@ -114,7 +138,9 @@ def test_boundary_attribute_with_parent_offset_besides_boundary_and_nested():
         <template>
             <layout name="layout" offset="0x300">
                 <area name="area" boundary="0x200">
-                    <field name="field" boundary="0x100"></field>
+                    <field name="field" boundary="0x100">
+                        <field name="nested_field" size="1"></field>
+                    </field>
                 </area>
             </layout>
         </template>

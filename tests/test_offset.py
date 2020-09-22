@@ -132,6 +132,8 @@ def test_offset_override():
         <template name="template0">
             <layout name="layout0" offset="0x300">
                 <area name="area0" offset="0x300" boundary="0x200">
+                    <field name="field0" size="1">
+                    </field>
                 </area>
             </layout>
         </template>"""
