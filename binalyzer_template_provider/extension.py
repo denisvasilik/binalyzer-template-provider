@@ -8,7 +8,7 @@ import io
 import requests
 
 from typing import Optional
-from binalyzer_core import BinalyzerExtension
+from binalyzer_core import Binalyzer, BinalyzerExtension
 
 from .xml import XMLTemplateParser
 
@@ -43,4 +43,4 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
         if data:
             self.binalyzer.data = io.BytesIO(data)
         self.binalyzer.template = template
-        return template
+        return self.binalyzer.template
