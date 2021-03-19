@@ -32,11 +32,13 @@ class XMLTemplateProviderExtension(BinalyzerExtension):
 
         return self.from_str(template_text, data)
 
-    def from_url(self, template_url: str, data_url: str, **kwargs):
+    def from_url(self, template_url: str, data_url: Optional[str] = None, **kwargs):
         template_response = requests.get(template_url, **kwargs)
-        data_response = requests.get(data_url, **kwargs)
-
-        return self.from_str(template_response.text, data_response.content)
+        data = None
+        if data_url:
+            data_response = requests.get(data_url, **kwargs)
+            data = data_response.content
+        return self.from_str(template_response.text, data)
 
     def from_str(self, text: str, data: Optional[bytes] = None):
         """Reads an XML string and creates a template object model.
