@@ -32,8 +32,9 @@ setuptools.setup(
     data_files=[("", ["CHANGELOG.md"])],
     setup_requires=[],
     install_requires=[
-        "antlr4-python3-runtime",
-        "anytree>=2.8.0"
+        "antlr4-python3-runtime==4.8",
+        "anytree>=2.8.0",
+        "requests>=2.25.1"
     ],
     entry_points={},
 )
