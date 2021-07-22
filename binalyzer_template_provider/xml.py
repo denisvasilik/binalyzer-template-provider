@@ -42,6 +42,7 @@ class XMLTemplateParser(XMLParserListener):
         "size",
         "count",
         "signature",
+        "text",
         "hint",
         "padding-before",
         "padding-after",
@@ -61,6 +62,7 @@ class XMLTemplateParser(XMLParserListener):
         self._parse_tree = self._parser.document()
         self._parse_tree_walker = antlr4.ParseTreeWalker()
         self._root = None
+        self._template = None
         self._templates = []
         self._data = data
         self._binalyzer = binalyzer
@@ -74,12 +76,12 @@ class XMLTemplateParser(XMLParserListener):
         if self._templates:
             parent = self._templates[-1]
 
-        template = self._parse_attributes(Template(), parent, ctx)
+        self._template = self._parse_attributes(Template(), parent, ctx)
 
         if not parent:
-            self._root = template
+            self._root = self._template
 
-        self._templates.append(template)
+        self._templates.append(self._template)
 
     def exitElement(self, ctx):
         if self._templates:
@@ -99,6 +101,11 @@ class XMLTemplateParser(XMLParserListener):
         template.parent = parent
         return template
 
+    def enterText(self, ctx):
+        hex_str = ctx.children[0].children[0].symbol.text.strip()
+        if hex_str:
+            self._template.text_property = bytes.fromhex(hex_str)
+
     def _parse_name_attribute(self, attribute, template, ctx):
         if attribute.binding() is not None:
             raise RuntimeError("Using a reference for a name attribute is not allowed.")
@@ -111,6 +118,9 @@ class XMLTemplateParser(XMLParserListener):
         template.signature_property = self._parse_signature_attribute_value(
             attribute, template
         )
+
+    def _parse_text_attribute(self, attribute, template, ctx):
+        template.text_property = self._parse_text_attribute_value(attribute, template)
 
     def _parse_hint_attribute(self, attribute, template, ctx):
         template.hint_property = self._parse_hint_attribute_value(attribute, template)
@@ -175,6 +185,10 @@ class XMLTemplateParser(XMLParserListener):
         return attribute.value().getText()[1:-1]
 
     def _parse_signature_attribute_value(self, attribute, template):
+        hex_str = attribute.value().getText()[3:-1]
+        return bytes.fromhex(hex_str)
+
+    def _parse_text_attribute_value(self, attribute, template):
         hex_str = attribute.value().getText()[3:-1]
         return bytes.fromhex(hex_str)
 

@@ -8,14 +8,14 @@
             "program": "../.venv/bin/pytest",
             "args": [
                 "-v",
-                "../binalyzer-template-provider/tests/test_xml.py::test_namespaces"
+                "../binalyzer-template-provider/tests/test_text.py::test_text_between_tags"
             ],
             "env": {
                 "PYTHONPATH": "binalyzer"
             },
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "pythonPath": "${workspaceFolder}/../.venv/bin/python3"
+            "python": "${workspaceFolder}/../.venv/bin/python3"
         },
     ]
 }

@@ -5,8 +5,10 @@ document    :   prolog? misc* element misc*;
 
 prolog      :   XMLDeclOpen attribute* SPECIAL_CLOSE ;
 
-content     :   chardata?
+content     :   text?
                 ((element | reference | CDATA | PI | COMMENT) chardata?)* ;
+
+text        :   chardata ;
 
 element     :   '<' Name attribute* '>' content '<' '/' Name '>'
             |   '<' Name attribute* '/>'
