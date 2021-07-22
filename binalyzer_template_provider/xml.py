@@ -62,7 +62,6 @@ class XMLTemplateParser(XMLParserListener):
         self._parse_tree = self._parser.document()
         self._parse_tree_walker = antlr4.ParseTreeWalker()
         self._root = None
-        self._template = None
         self._templates = []
         self._data = data
         self._binalyzer = binalyzer
@@ -76,12 +75,12 @@ class XMLTemplateParser(XMLParserListener):
         if self._templates:
             parent = self._templates[-1]
 
-        self._template = self._parse_attributes(Template(), parent, ctx)
+        template = self._parse_attributes(Template(), parent, ctx)
 
         if not parent:
-            self._root = self._template
+            self._root = template
 
-        self._templates.append(self._template)
+        self._templates.append(template)
 
     def exitElement(self, ctx):
         if self._templates:
@@ -103,8 +102,9 @@ class XMLTemplateParser(XMLParserListener):
 
     def enterText(self, ctx):
         hex_str = ctx.children[0].children[0].symbol.text.strip()
+        hex_str = ''.join(hex_str.split())
         if hex_str:
-            self._template.text_property = bytes.fromhex(hex_str)
+            self._templates[-1].text_property = bytes.fromhex(hex_str)
 
     def _parse_name_attribute(self, attribute, template, ctx):
         if attribute.binding() is not None:
