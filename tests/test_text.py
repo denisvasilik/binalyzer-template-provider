@@ -27,3 +27,26 @@ def test_text_between_tags():
     """
     ).parse()
     assert template.text == bytes([0x00, 0x11, 0x22, 0x33])
+
+
+def test_text_sets_template_size_between_tags():
+    template = XMLTemplateParser(
+        """
+        <template>
+            55 66 77 88
+        </template>
+    """).parse()
+    assert template.text == bytes([0x55, 0x66, 0x77, 0x88])
+    assert template.value == bytes()
+    assert template.size == 4
+
+
+def test_text_sets_template_size_with_hex_value():
+    template = XMLTemplateParser(
+        """
+        <template text="0x55667788">
+        </template>
+    """).parse()
+    assert template.text == bytes([0x55, 0x66, 0x77, 0x88])
+    assert template.value == bytes()
+    assert template.size == 4

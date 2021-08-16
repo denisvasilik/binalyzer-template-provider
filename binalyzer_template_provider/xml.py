@@ -104,7 +104,7 @@ class XMLTemplateParser(XMLParserListener):
         hex_str = ctx.children[0].children[0].symbol.text.strip()
         hex_str = ''.join(hex_str.split())
         if hex_str:
-            self._templates[-1].text_property = bytes.fromhex(hex_str)
+            self._templates[-1].text = bytes.fromhex(hex_str)
 
     def _parse_name_attribute(self, attribute, template, ctx):
         if attribute.binding() is not None:
@@ -120,7 +120,7 @@ class XMLTemplateParser(XMLParserListener):
         )
 
     def _parse_text_attribute(self, attribute, template, ctx):
-        template.text_property = self._parse_text_attribute_value(attribute, template)
+        template.text = self._parse_text_attribute_value(attribute, template)
 
     def _parse_hint_attribute(self, attribute, template, ctx):
         template.hint_property = self._parse_hint_attribute_value(attribute, template)
