@@ -66,6 +66,7 @@ clean:
 		docs/_build \
 	 	build \
 	 	dist \
-		cov_html)
+		cov_html \
+		.coverage)
 
 .PHONY: all install-antlr4 generate-xml-parser clean sloc test flakes lint clone package install-from-test-pypi upload-to-test-pypi upload-to-pypi
