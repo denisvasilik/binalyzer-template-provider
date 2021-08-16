@@ -50,3 +50,14 @@ def test_text_sets_template_size_with_hex_value():
     assert template.text == bytes([0x55, 0x66, 0x77, 0x88])
     assert template.value == bytes()
     assert template.size == 4
+
+
+def test_size_overrides_size_of_text_attribute():
+    template = XMLTemplateParser(
+        """
+        <template size="2" text="0x55667788">
+        </template>
+    """).parse()
+    assert template.text == bytes([0x55, 0x66, 0x77, 0x88])
+    assert template.value == bytes()
+    assert template.size == 2
