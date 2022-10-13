@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.3] - 13.10.2022
+
+- Use Python 3.9 for CI pipeline
+- Added tests for relative offset references
+
 ## [v1.0.2] - 18.08.2021
 
 - Added tests for auto-sizing using the text attribute
