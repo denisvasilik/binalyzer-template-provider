@@ -221,3 +221,17 @@ def test_relative_offset_override():
     assert template.layout0.absolute_address == 0x600
     assert template.layout0.area0.offset == 0x100
     assert template.layout0.area0.absolute_address == 0x700
+
+def test_relative_offset_override():
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <field name="field0" offset="0x4" size="4"></field>
+            <field name="field1" offset="{field0}"></field>
+        </template>"""
+    ).parse()
+    template.field0.value = bytes([0x08])
+    assert template.field0.offset == 0x4
+    assert template.field0.value == bytes([0x08])
+    assert template.field1.offset == 0x8
+    assert template.field1.absolute_address == 0x8
