@@ -253,3 +253,54 @@ def test_relative_offset_reference_with_previous_sibling():
     assert template.field1.offset == 0x40
     assert template.field2.offset == 0x8
     assert template.field2.absolute_address == 0x8
+
+
+def test_relative_offset_reference_with_previous_sibling():
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <field name="field0" size="64"></field>
+            <field name="field1" size="4"></field>
+            <field name="field2" offset="{field1}"></field>
+        </template>"""
+    ).parse()
+    template.field1.value = bytes([0x08])
+    assert template.field0.offset == 0x0
+    assert template.field1.value == bytes([0x08])
+    assert template.field1.offset == 0x40
+    assert template.field2.offset == 0x8
+    assert template.field2.absolute_address == 0x8
+
+
+def test_relative_offset_reference_with_little_endian():
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <field name="field0" size="64"></field>
+            <field name="field1" size="4"></field>
+            <field name="field2" offset="{field1, byteorder=little}"></field>
+        </template>"""
+    ).parse()
+    template.field1.value = bytes([0x08] + [0x00]*3)
+    assert template.field0.offset == 0x0
+    assert template.field1.value == bytes([0x08] + [0x00]*3)
+    assert template.field1.offset == 0x40
+    assert template.field2.offset == 0x8
+    assert template.field2.absolute_address == 0x8
+
+
+def test_relative_offset_reference_with_big_endian():
+    template = XMLTemplateParser(
+        """
+        <template name="template0">
+            <field name="field0" size="64"></field>
+            <field name="field1" size="4"></field>
+            <field name="field2" offset="{field1, byteorder=big}"></field>
+        </template>"""
+    ).parse()
+    template.field1.value = bytes([0x00]*3 + [0x08])
+    assert template.field0.offset == 0x0
+    assert template.field1.value == bytes([0x00]*3 + [0x08])
+    assert template.field1.offset == 0x40
+    assert template.field2.offset == 0x8
+    assert template.field2.absolute_address == 0x8

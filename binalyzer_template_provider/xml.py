@@ -137,6 +137,7 @@ class XMLTemplateParser(XMLParserListener):
                 template.offset_property = RelativeOffsetReferenceProperty(
                     template, reference_name
                 )
+                template.offset_property.value_provider.byteorder = offset_property.value_provider.byteorder
             else:
                 template.offset_property = OffsetValueProperty(
                     template, offset_property.value

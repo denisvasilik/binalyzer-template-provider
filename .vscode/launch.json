@@ -8,7 +8,7 @@
             "program": "../.venv/bin/pytest",
             "args": [
                 "-v",
-                "../binalyzer-template-provider/tests/test_offset.py::test_relative_offset_reference_with_previous_sibling"
+                "../binalyzer-template-provider/tests/test_offset.py::test_relative_offset_reference_with_big_endian"
             ],
             "env": {
                 "PYTHONPATH": "binalyzer"
